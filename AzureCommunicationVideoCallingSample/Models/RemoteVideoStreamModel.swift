@@ -37,7 +37,7 @@ class RemoteVideoStreamModel: VideoStreamModel, RemoteParticipantDelegate {
     func onVideoStreamsUpdated(_ remoteParticipant: RemoteParticipant!, args: RemoteVideoStreamsEventArgs!) {
             print("\n---------------------")
             print("onVideoStreamsUpdated")
-            print("-----------------------\n")
+            print("---------------------\n")
 
             if remoteParticipant.identity is CommunicationUserIdentifier {
                 let remoteParticipantIdentity = remoteParticipant.identity as! CommunicationUserIdentifier
