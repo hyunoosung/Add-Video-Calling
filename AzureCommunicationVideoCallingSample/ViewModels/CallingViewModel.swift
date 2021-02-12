@@ -231,7 +231,7 @@ class CallingViewModel: NSObject, ObservableObject {
 
     func stopVideo(competion: @escaping (Bool) -> Void) {
         if let call = CallingViewModel.shared().call {
-            call.stopVideo(stream: localVideoStream) { error in
+            call.stopVideo(stream: CallingViewModel.shared().localVideoStream) { error in
                 if error != nil {
                     print("LocalVideo failed to stop.\n")
                     competion(false)
@@ -270,8 +270,12 @@ class CallingViewModel: NSObject, ObservableObject {
                     // MARK: startVideo when connection has made
                 }
 
-                CallingViewModel.shared().call = callAgent.call(participants: callees, options: startCallOptions)
-                CallingViewModel.shared().call?.delegate = self
+                let call = callAgent.call(participants: callees, options: startCallOptions)
+                call?.delegate = self
+                if let localVideoStream = CallingViewModel.shared().localVideoStream {
+                    self.startVideo(call: call!, localVideoStream: localVideoStream)
+                }
+                CallingViewModel.shared().call = call
                 print("outgoing call started.")
 
             } else {
@@ -290,9 +294,7 @@ class CallingViewModel: NSObject, ObservableObject {
                         let videoOptions = VideoOptions(localVideoStream: localVideoStream)
                         acceptCallOptions?.videoOptions = videoOptions
                         // MARK: startVideo when connection has made
-                        if let localVideoStream = CallingViewModel.shared().localVideoStream {
-                            self.startVideo(call: call, localVideoStream: localVideoStream)
-                        }
+                        self.startVideo(call: call, localVideoStream: localVideoStream)
                     }
 
                     call.accept(options: acceptCallOptions) { error in
@@ -329,22 +331,12 @@ class CallingViewModel: NSObject, ObservableObject {
 
     func endCall() -> Void {
         print("endCall requested from App.\n")
-        if let call = self.call {
+        if let call = CallingViewModel.shared().call {
             call.hangup(options: HangupOptions()) { error in
                 if let error = error {
                     print("hangup failed: \(error.localizedDescription).\n")
                 } else {
-                    if let callId = UUID(uuidString: call.callId) {
-                        CallKitManager.shared().endCallFromLocal(callId: callId) { success in
-                            if success {
-                                print("Report endCall to CallKitManager succeed.\n")
-                            } else {
-                                print("Report endCall to CallKitManager failed.\n")
-                            }
-                        }
-                    } else {
-                        print("Parsing callId from call failed.\n")
-                    }
+                    print("hangup succeed.\n")
                 }
             }
         } else {
