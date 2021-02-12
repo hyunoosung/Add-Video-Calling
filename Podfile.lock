@@ -1,0 +1,28 @@
+PODS:
+  - AzureCommunication (1.0.0-beta.8):
+    - AzureCore (~> 1.0.0-beta.8)
+  - AzureCommunicationCalling (1.0.0-beta.8):
+    - AzureCommunication (~> 1.0.0-beta.8)
+  - AzureCore (1.0.0-beta.8)
+  - AzureNotificationHubs-iOS (3.1.3)
+
+DEPENDENCIES:
+  - AzureCommunicationCalling (~> 1.0.0-beta.8)
+  - AzureNotificationHubs-iOS
+
+SPEC REPOS:
+  trunk:
+    - AzureCommunication
+    - AzureCommunicationCalling
+    - AzureCore
+    - AzureNotificationHubs-iOS
+
+SPEC CHECKSUMS:
+  AzureCommunication: 45fc76a131a18419c3ba9bf39c4a07a25f40669b
+  AzureCommunicationCalling: 794732f405315718254359ca739cfe4026d9ad4d
+  AzureCore: dd1775dec02746833668fb05513300fe06f5de0d
+  AzureNotificationHubs-iOS: 2070251bcc9cefa888b436a5b023a7375ae823f4
+
+PODFILE CHECKSUM: 343a592065528357bbe8d403d04d56d533a9b811
+
+COCOAPODS: 1.10.1

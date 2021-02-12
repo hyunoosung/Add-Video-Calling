@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+   DevSettings.plist
+   AzureCommunicationVideoCallingSample
+
+   Created by Hyounwoo Sung on 2021/02/06.
+   Copyright (c) 2021 ___ORGANIZATIONNAME___. All rights reserved.
+-->
+<plist version="1.0">
+    <dict>
+        <key>HUB_NAME</key>
+        <string></string>
+        <key>CONNECTION_STRING</key>
+        <string></string>
+    </dict>
+</plist>
