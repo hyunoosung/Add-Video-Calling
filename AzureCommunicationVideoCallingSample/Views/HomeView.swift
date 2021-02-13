@@ -43,6 +43,7 @@ struct HomeView: View {
                                 Text("End Call")
                             }
 //                            .disabled(callingViewModel.call?.state != .ringing && callingViewModel.call?.state != .connecting)
+                            Text("Call State: \(callingViewModel.callState.name)")
                         }
                     }
                 }

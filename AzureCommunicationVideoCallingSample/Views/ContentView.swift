@@ -38,7 +38,9 @@ struct ContentView: View {
         }
         .onReceive(authenticationViewModel.$signInRequired, perform: { signInRequired in
             print("signInRequired state changed to \(signInRequired)\n")
-            sheetType = signInRequired ? .signInRequired : nil
+            if signInRequired {
+                sheetType = .signInRequired
+            }
         })
 //        .onReceive(callingViewModel.$call, perform: { call in
 //            if call == nil {
@@ -94,18 +96,20 @@ struct ContentView: View {
     }
 
     func checkToken() {
-        if let communicationUserTokenModel = authenticationViewModel.getCommunicationUserToken() {
-            if !callingViewModel.hasCallAgent {
+        if !callingViewModel.hasCallAgent {
+            if let communicationUserTokenModel = authenticationViewModel.getCommunicationUserToken() {
                 callingViewModel.initCallAgent(communicationUserTokenModel: communicationUserTokenModel, displayName: authenticationViewModel.displayName) { (success) in
                     if success {
                         notificationViewModel.connectToHub()
+                    } else {
+                        print("callAgent not intialized.\n")
                     }
                 }
             } else {
-                notificationViewModel.connectToHub()
+                print("no token found stay at Home.")
             }
         } else {
-            print("callAgent not intialized.\n")
+            notificationViewModel.connectToHub()
         }
     }
 

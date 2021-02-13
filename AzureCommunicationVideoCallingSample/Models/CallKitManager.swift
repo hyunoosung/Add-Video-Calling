@@ -81,6 +81,7 @@ class CallKitManager: NSObject {
 
         self.provider.reportNewIncomingCall(with: callId, update: update) { (error) in
             if error == nil {
+                CallingViewModel.shared().configureAudioSession()
                 completion(true)
             } else {
                 completion(false)
