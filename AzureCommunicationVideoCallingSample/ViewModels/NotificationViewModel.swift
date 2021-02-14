@@ -78,7 +78,6 @@ class NotificationViewModel: NSObject, ObservableObject, UNUserNotificationCente
             self.pushChannel = installation.pushChannel
             print("notificationHub installation was successful.")
             CallingViewModel.shared().initPushNotification()
-//            CallingViewModel.shared().registerVoIP()
         }
     }
 

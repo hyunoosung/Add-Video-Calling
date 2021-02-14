@@ -85,13 +85,6 @@ class CallingViewModel: NSObject, ObservableObject {
     }
 
     func getCall(callId: UUID) -> Call? {
-        // MARK: Should remove logs below.
-//        print("self.callAgent: \(String(describing: self.callAgent))\n")
-//        print("self.call: \(String(describing: self.call))\n")
-//
-//        print("\nself.callAgent: \(String(describing: self.callAgent))\n")
-//        print("slef.call: \(String(describing: self.call))\n")
-
         if let call = self.call {
             print("incoming callId: \(call.callId.uppercased())")
             print("push callId: \(callId)")
@@ -113,6 +106,7 @@ class CallingViewModel: NSObject, ObservableObject {
 
     func resetCallAgent() {
         if let callAgent = self.callAgent {
+            unRegisterVoIP()
             callAgent.delegate = nil
             self.callAgent = nil
         } else {
@@ -276,9 +270,11 @@ class CallingViewModel: NSObject, ObservableObject {
                         self.call = callAgent.call(participants: callees, options: startCallOptions)
                         self.call?.delegate = self
                         self.startVideo(call: self.call!, localVideoStream: localVideoStream)
+                        CallKitManager.shared().startOutgoingCall(call: self.call!, callerDisplayName: Constants.displayName)
                         print("outgoing call started.")
                     } else {
                         self.call = callAgent.call(participants: callees, options: startCallOptions)
+                        CallKitManager.shared().startOutgoingCall(call: self.call!, callerDisplayName: Constants.displayName)
                         self.call?.delegate = self
                         print("outgoing call started.")
                     }
@@ -400,13 +396,13 @@ class CallingViewModel: NSObject, ObservableObject {
 
 extension CallingViewModel: PKPushRegistryDelegate {
     func unRegisterVoIP() {
-//        self.callAgent?.unRegisterPushNotifications(completionHandler: { (error) in
-//            if (error != nil) {
-//                print("Register of push notification failed, please try again.\n")
-//            } else {
-//                print("Unregister of push notification was successful.\n")
-//            }
-//        })
+        self.callAgent?.unRegisterPushNotifications(completionHandler: { (error) in
+            if (error != nil) {
+                print("Register of push notification failed, please try again.\n")
+            } else {
+                print("Unregister of push notification was successful.\n")
+            }
+        })
     }
 
     func pushRegistry(_ registry: PKPushRegistry, didUpdate pushCredentials: PKPushCredentials, for type: PKPushType) {
@@ -457,14 +453,20 @@ extension CallingViewModel: PKPushRegistryDelegate {
                     if !token.isEmpty && !identifier.isEmpty {
                         let communicationUserToken = CommunicationUserTokenModel(token: token, expiresOn: nil, communicationUserId: identifier)
                         self.initCallAgent(communicationUserTokenModel: communicationUserToken, displayName: displayName) { (success) in
-                            self.callAgent?.handlePush(notification: incomingCallPushNotification, completionHandler: { error in
-                                if (error != nil) {
-                                    print("Handling of push notification to call failed: \(error.debugDescription)\n")
-                                } else {
-                                    print("Handling of push notification to call was successful.\n")
-                                    self.incomingCallPushNotification = nil
-                                }
-                            })
+                            if success {
+                                self.initPushNotification()
+
+                                self.callAgent?.handlePush(notification: incomingCallPushNotification, completionHandler: { error in
+                                    if (error != nil) {
+                                        print("Handling of push notification to call failed: \(error.debugDescription)\n")
+                                    } else {
+                                        print("Handling of push notification to call was successful.\n")
+                                        self.incomingCallPushNotification = nil
+                                    }
+                                })
+                            } else {
+                                print("initCallAgent failed.\n")
+                            }
                         }
                     } else {
                         // MARK: no token found, unregister push notification when signing out.
