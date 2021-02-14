@@ -328,18 +328,6 @@ class CallingViewModel: NSObject, ObservableObject {
         }
     }
 
-    private func hangup(call: Call, completion: @escaping (Bool) -> Void) {
-        call.hangup(options: HangupOptions()) { error in
-            if error != nil {
-                print("ERROR: It was not possible to hangup the call.\n")
-                completion(true)
-            } else {
-                print("Hangup call succed.\n")
-                completion(false)
-            }
-        }
-    }
-
     func endCall() -> Void {
         print("endCall requested from App.\n")
         if let call = self.call {
@@ -361,8 +349,10 @@ class CallingViewModel: NSObject, ObservableObject {
             call.hangup(options: HangupOptions()) { error in
                 if let error = error {
                     print("hangup failed: \(error.localizedDescription).\n")
+                    completion(false)
                 } else {
                     print("hangup succeed.\n")
+                    completion(true)
                 }
             }
         } else {
@@ -502,21 +492,25 @@ extension CallingViewModel: CallAgentDelegate {
         }
 
         if let removedCall = args.removedCalls?.first {
-            print("removedCalls: \(args.removedCalls.count)")
-            if let call = self.call,
-               let callId = UUID(uuidString: call.callId) {
-                if callId == UUID(uuidString: removedCall.callId) {
+            print("removedCalls: \(args.removedCalls.count)\n")
+            let removedCallUUID = UUID(uuidString: removedCall.callId)
+            // MARK: report CallKitManager for endCall.
+            CallKitManager.shared().reportCallEndedFromRemote(callId: removedCallUUID!, reason: CXCallEndedReason.remoteEnded)
+
+            if let call = self.call {
+                print("call removed.\n")
+                if call.callId == removedCall.callId {
                     self.callState = removedCall.state
                     self.call?.delegate = nil
                     self.call = nil
-
-                    // MARK: report CallKitManager for endCall.
-                    if let callId = UUID(uuidString: call.callId) {
-                        CallKitManager.shared().reportCallEndedFromRemote(callId: callId, reason: CXCallEndedReason.remoteEnded)
-                    } else {
-                        print("Parsing callId from call failed.\n")
-                    }
                 }
+            } else {
+                print("\ncall removed before initizliaztion.\n")
+            }
+        } else {
+            print("removedCall: \(String(describing: args.removedCalls))")
+            if let incomingCallPushNotification = self.incomingCallPushNotification {
+                CallKitManager.shared().reportCallEndedFromRemote(callId: incomingCallPushNotification.callId, reason: CXCallEndedReason.remoteEnded)
             }
         }
     }

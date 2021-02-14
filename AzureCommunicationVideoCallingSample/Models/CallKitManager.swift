@@ -132,6 +132,7 @@ class CallKitManager: NSObject {
 
     // Use this to notify CallKit the call is disconnected
     func reportCallEndedFromRemote(callId: UUID, reason: CXCallEndedReason) {
+        print("reportCallEndedFromRemote.\n")
         provider.reportCall(with: callId, endedAt: Date(), reason: reason)
     }
 }
