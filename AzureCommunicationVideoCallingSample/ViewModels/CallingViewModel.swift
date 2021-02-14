@@ -268,28 +268,20 @@ class CallingViewModel: NSObject, ObservableObject {
                 let callees:[CommunicationUserIdentifier] = [CommunicationUserIdentifier(identifier: self.callee)]
                 let startCallOptions = StartCallOptions()
 
-                self.getDeviceManager { success in
+                self.getDeviceManager { _ in
                     if let localVideoStream = self.localVideoStream {
                         let videoOptions = VideoOptions(localVideoStream: localVideoStream)
                         startCallOptions?.videoOptions = videoOptions
+
+                        self.call = callAgent.call(participants: callees, options: startCallOptions)
+                        self.call?.delegate = self
+                        self.startVideo(call: self.call!, localVideoStream: localVideoStream)
+                        print("outgoing call started.")
+                    } else {
+                        self.call = callAgent.call(participants: callees, options: startCallOptions)
+                        self.call?.delegate = self
+                        print("outgoing call started.")
                     }
-
-                    if let localVideoStream = self.localVideoStream {
-                        let videoOptions = VideoOptions(localVideoStream: localVideoStream)
-                        startCallOptions?.videoOptions = videoOptions
-                        // MARK: startVideo when connection has made
-                    }
-
-                    let call = callAgent.call(participants: callees, options: startCallOptions)
-                    call?.delegate = self
-
-                    if let localVideoStream = self.localVideoStream {
-                        self.startVideo(call: call!, localVideoStream: localVideoStream)
-                    }
-
-                    self.call = call
-                    print("outgoing call started.")
-
                 }
             } else {
                 print("callAgent not initialized.\n")
@@ -305,23 +297,24 @@ class CallingViewModel: NSObject, ObservableObject {
                     if let call = self.getCall(callId: callId) {
                         let acceptCallOptions = AcceptCallOptions()
 
-                        self.getDeviceManager { success in
+                        self.getDeviceManager { _ in
                             if let localVideoStream = self.localVideoStream {
                                 let videoOptions = VideoOptions(localVideoStream: localVideoStream)
                                 acceptCallOptions?.videoOptions = videoOptions
                                 // MARK: startVideo when connection has made
                                 self.startVideo(call: call, localVideoStream: localVideoStream)
                             }
-                        }
 
-                        call.accept(options: acceptCallOptions) { error in
-                            if let error = error {
-                                print("Failed to accpet incoming call: \(error.localizedDescription)\n")
-                            } else {
-                                print("Incoming call accepted with acceptCallOptions.\n")
+                            call.accept(options: acceptCallOptions) { error in
+                                if let error = error {
+                                    print("Failed to accpet incoming call: \(error.localizedDescription)\n")
+                                    completion(false)
+                                } else {
+                                    print("Incoming call accepted with acceptCallOptions.\n")
+                                    completion(true)
+                                }
                             }
                         }
-                        completion(true)
                     } else {
                         print("Call not found when trying to accept.\n")
                         completion(false)
@@ -441,6 +434,7 @@ extension CallingViewModel: PKPushRegistryDelegate {
 
         if type == .voIP {
             if let incomingCallPushNotification = IncomingCallPushNotification.fromDictionary(payload.dictionaryPayload) {
+                self.configureAudioSession()
                 CallKitManager.shared().reportNewIncomingCall(incomingCallPushNotification: incomingCallPushNotification) { success in
                     if success {
                         print("Handling of report incoming call was succesful.\n")
