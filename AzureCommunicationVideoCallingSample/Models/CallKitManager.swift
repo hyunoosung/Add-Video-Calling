@@ -42,18 +42,21 @@ class CallKitManager: NSObject {
     }
 
     // Start an outging call
-    func startOutgoingCall(with call: Call) {
-//        let handle = CXHandle(type: .generic, value: call.handle)
-//        let startCallAction = CXStartCallAction(call: call.uuid, handle: handle)
-//        let transaction = CXTransaction(action: startCallAction)
-//
-//        callController.request(transaction) { error in
-//            if let error = error {
-//                self.logger.error(msg: "Error requesting CXStartCallAction transaction: \(error)")
-//            } else {
-//                self.logger.info(msg: "Requested CXStartCallAction transaction successfully")
-//            }
-//        }
+    func startOutgoingCall(call: Call, callerDisplayName: String) {
+        let callId = UUID(uuidString: call.callId)
+        let handle = CXHandle(type: .generic, value: callerDisplayName)
+        let startCallAction = CXStartCallAction(call: callId!, handle: handle)
+        let transaction = CXTransaction(action: startCallAction)
+
+        callController.request(transaction) { error in
+            if let error = error {
+                print("Error requesting CXStartCallAction transaction: \(error)")
+            } else {
+                print("Requested CXStartCallAction transaction successfully")
+            }
+        }
+
+        provider.reportOutgoingCall(with: callId!, connectedAt: nil)
     }
 
     // End the call from the app. This is not needed when user end the call from the native CallKit UI
@@ -97,26 +100,6 @@ class CallKitManager: NSObject {
             } else {
                 completion(false)
             }
-        }
-    }
-
-    func reportNewIncomingCall(dictionaryPayload: [AnyHashable : Any], completion: @escaping (Bool) -> Void) {
-        if let data = dictionaryPayload["data"] as? [String:Any],
-           let callId = data["callId"] as? String,
-           let displayName = data["displayName"] as? String,
-           let callUUID = UUID(uuidString: callId) {
-
-            let update = CXCallUpdate()
-            update.remoteHandle = CXHandle(type: .generic, value: "Incoming call from \(displayName)")
-            self.provider.reportNewIncomingCall(with: callUUID, update: update) { (error) in
-                if error == nil {
-                    completion(true)
-                } else {
-                    completion(false)
-                }
-            }
-        } else {
-            completion(false)
         }
     }
 
