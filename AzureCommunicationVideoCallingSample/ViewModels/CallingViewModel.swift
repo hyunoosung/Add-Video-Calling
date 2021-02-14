@@ -113,6 +113,7 @@ class CallingViewModel: NSObject, ObservableObject {
 
     func resetCallAgent() {
         if let callAgent = self.callAgent {
+            unRegisterVoIP()
             callAgent.delegate = nil
             self.callAgent = nil
         } else {
@@ -400,13 +401,13 @@ class CallingViewModel: NSObject, ObservableObject {
 
 extension CallingViewModel: PKPushRegistryDelegate {
     func unRegisterVoIP() {
-//        self.callAgent?.unRegisterPushNotifications(completionHandler: { (error) in
-//            if (error != nil) {
-//                print("Register of push notification failed, please try again.\n")
-//            } else {
-//                print("Unregister of push notification was successful.\n")
-//            }
-//        })
+        self.callAgent?.unRegisterPushNotifications(completionHandler: { (error) in
+            if (error != nil) {
+                print("Register of push notification failed, please try again.\n")
+            } else {
+                print("Unregister of push notification was successful.\n")
+            }
+        })
     }
 
     func pushRegistry(_ registry: PKPushRegistry, didUpdate pushCredentials: PKPushCredentials, for type: PKPushType) {
