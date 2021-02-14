@@ -54,12 +54,12 @@ class CallingViewModel: NSObject, ObservableObject {
                 let communicationTokenCredential = try CommunicationTokenCredential(token: token)
                 let callAgentOptions = CallAgentOptions()
                 callAgentOptions?.displayName = displayName ?? communicationUserId
-                CallingViewModel.shared().callClient?.createCallAgent(userCredential: communicationTokenCredential, options: callAgentOptions) { (callAgent, error) in
-                    if CallingViewModel.shared().callAgent != nil {
-                        CallingViewModel.shared().callAgent?.delegate = nil
+                self.callClient?.createCallAgent(userCredential: communicationTokenCredential, options: callAgentOptions) { (callAgent, error) in
+                    if self.callAgent != nil {
+                        self.callAgent?.delegate = nil
                     }
-                    CallingViewModel.shared().callAgent = callAgent
-                    CallingViewModel.shared().callAgent?.delegate = self
+                    self.callAgent = callAgent
+                    self.callAgent?.delegate = self
                     self.hasCallAgent = true
 
                     print("CallAgent successfully created.\n")
@@ -75,7 +75,7 @@ class CallingViewModel: NSObject, ObservableObject {
     }
 
     func initPushNotification() {
-        CallingViewModel.shared().callAgent?.registerPushNotifications(deviceToken: self.voIPToken, completionHandler: { (error) in
+        self.callAgent?.registerPushNotifications(deviceToken: self.voIPToken, completionHandler: { (error) in
             if(error == nil) {
                 print("Successfully registered to VoIP push notification.\n")
             } else {
@@ -83,10 +83,11 @@ class CallingViewModel: NSObject, ObservableObject {
             }
         })
     }
+
     func getCall(callId: UUID) -> Call? {
         // MARK: Should remove logs below.
-//        print("CallingViewModel.shared().callAgent: \(String(describing: CallingViewModel.shared().callAgent))\n")
-//        print("CallingViewModel.shared().call: \(String(describing: CallingViewModel.shared().call))\n")
+//        print("self.callAgent: \(String(describing: self.callAgent))\n")
+//        print("self.call: \(String(describing: self.call))\n")
 //
 //        print("\nself.callAgent: \(String(describing: self.callAgent))\n")
 //        print("slef.call: \(String(describing: self.call))\n")
@@ -111,9 +112,9 @@ class CallingViewModel: NSObject, ObservableObject {
     }
 
     func resetCallAgent() {
-        if let callAgent = CallingViewModel.shared().callAgent {
+        if let callAgent = self.callAgent {
             callAgent.delegate = nil
-            CallingViewModel.shared().callAgent = nil
+            self.callAgent = nil
         } else {
             print("callAgent not found.\n")
         }
@@ -123,14 +124,14 @@ class CallingViewModel: NSObject, ObservableObject {
     func getDeviceManager(completion: @escaping (Bool) -> Void) {
         requestVideoPermission { success in
             if success {
-                CallingViewModel.shared().callClient?.getDeviceManager(completionHandler: { (deviceManager, error) in
+                self.callClient?.getDeviceManager(completionHandler: { (deviceManager, error) in
                     if (error == nil) {
                         print("Got device manager instance")
                         self.deviceManager = deviceManager
 
                         if let videoDeviceInfo: VideoDeviceInfo = deviceManager?.getCameraList()?.first {
-                            CallingViewModel.shared().localVideoStream = LocalVideoStream(camera: videoDeviceInfo)
-                            CallingViewModel.shared().localVideoStreamModel = LocalVideoStreamModel(id: Constants.identifier, identity: nil, displayName: Constants.displayName)
+                            self.localVideoStream = LocalVideoStream(camera: videoDeviceInfo)
+                            self.localVideoStreamModel = LocalVideoStreamModel(id: Constants.identifier, identity: nil, displayName: Constants.displayName)
                             print("LocalVideoStream instance initialized.")
                             completion(true)
                         } else {
@@ -216,7 +217,7 @@ class CallingViewModel: NSObject, ObservableObject {
     func startVideo(call: Call, localVideoStream: LocalVideoStream) -> Void {
         requestVideoPermission { success in
             if success {
-                if let localVideoStreamModel = CallingViewModel.shared().localVideoStreamModel {
+                if let localVideoStreamModel = self.localVideoStreamModel {
                     call.startVideo(stream: localVideoStream) { error in
                         if error != nil {
                             print("LocalVideo failed to start.\n")
@@ -233,8 +234,8 @@ class CallingViewModel: NSObject, ObservableObject {
     }
 
     func stopVideo(competion: @escaping (Bool) -> Void) {
-        if let call = CallingViewModel.shared().call {
-            call.stopVideo(stream: CallingViewModel.shared().localVideoStream) { error in
+        if let call = self.call {
+            call.stopVideo(stream: self.localVideoStream) { error in
                 if error != nil {
                     print("LocalVideo failed to stop.\n")
                     competion(false)
@@ -263,24 +264,25 @@ class CallingViewModel: NSObject, ObservableObject {
                 return
             }
 
-            if let callAgent = CallingViewModel.shared().callAgent {
+            if let callAgent = self.callAgent {
                 let callees:[CommunicationUserIdentifier] = [CommunicationUserIdentifier(identifier: self.callee)]
                 let startCallOptions = StartCallOptions()
 
-                if let localVideoStream = CallingViewModel.shared().localVideoStream {
-                    let videoOptions = VideoOptions(localVideoStream: localVideoStream)
-                    startCallOptions?.videoOptions = videoOptions
-                    // MARK: startVideo when connection has made
-                }
+                self.getDeviceManager { _ in
+                    if let localVideoStream = self.localVideoStream {
+                        let videoOptions = VideoOptions(localVideoStream: localVideoStream)
+                        startCallOptions?.videoOptions = videoOptions
 
-                let call = callAgent.call(participants: callees, options: startCallOptions)
-                call?.delegate = self
-                if let localVideoStream = CallingViewModel.shared().localVideoStream {
-                    self.startVideo(call: call!, localVideoStream: localVideoStream)
+                        self.call = callAgent.call(participants: callees, options: startCallOptions)
+                        self.call?.delegate = self
+                        self.startVideo(call: self.call!, localVideoStream: localVideoStream)
+                        print("outgoing call started.")
+                    } else {
+                        self.call = callAgent.call(participants: callees, options: startCallOptions)
+                        self.call?.delegate = self
+                        print("outgoing call started.")
+                    }
                 }
-                CallingViewModel.shared().call = call
-                print("outgoing call started.")
-
             } else {
                 print("callAgent not initialized.\n")
             }
@@ -289,29 +291,30 @@ class CallingViewModel: NSObject, ObservableObject {
 
     // Accept incoming call
     func acceptCall(callId: UUID, completion: @escaping (Bool) -> Void) {
-        if CallingViewModel.shared().incomingCallPushNotification == nil {
+        if self.incomingCallPushNotification == nil {
             self.requestRecordPermission { authorized in
                 if authorized {
-                    if let call = CallingViewModel.shared().getCall(callId: callId) {
+                    if let call = self.getCall(callId: callId) {
                         let acceptCallOptions = AcceptCallOptions()
 
-                        self.getDeviceManager { success in
-                            if let localVideoStream = CallingViewModel.shared().localVideoStream {
+                        self.getDeviceManager { _ in
+                            if let localVideoStream = self.localVideoStream {
                                 let videoOptions = VideoOptions(localVideoStream: localVideoStream)
                                 acceptCallOptions?.videoOptions = videoOptions
                                 // MARK: startVideo when connection has made
                                 self.startVideo(call: call, localVideoStream: localVideoStream)
                             }
-                        }
 
-                        call.accept(options: acceptCallOptions) { error in
-                            if let error = error {
-                                print("Failed to accpet incoming call: \(error.localizedDescription)\n")
-                            } else {
-                                print("Incoming call accepted with acceptCallOptions.\n")
+                            call.accept(options: acceptCallOptions) { error in
+                                if let error = error {
+                                    print("Failed to accpet incoming call: \(error.localizedDescription)\n")
+                                    completion(false)
+                                } else {
+                                    print("Incoming call accepted with acceptCallOptions.\n")
+                                    completion(true)
+                                }
                             }
                         }
-                        completion(true)
                     } else {
                         print("Call not found when trying to accept.\n")
                         completion(false)
@@ -323,7 +326,7 @@ class CallingViewModel: NSObject, ObservableObject {
         } else {
             print("incomingCallPushNotification not processed yet")
             DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 2) {
-                CallingViewModel.shared().incomingCallPushNotification = nil
+                self.incomingCallPushNotification = nil
                 self.acceptCall(callId: callId) { _ in }
             }
         }
@@ -343,7 +346,7 @@ class CallingViewModel: NSObject, ObservableObject {
 
     func endCall() -> Void {
         print("endCall requested from App.\n")
-        if let call = CallingViewModel.shared().call {
+        if let call = self.call {
             call.hangup(options: HangupOptions()) { error in
                 if let error = error {
                     print("hangup failed: \(error.localizedDescription).\n")
@@ -373,7 +376,7 @@ class CallingViewModel: NSObject, ObservableObject {
     }
 
     func mute() {
-        if let call = CallingViewModel.shared().call {
+        if let call = self.call {
             if call.isMicrophoneMuted {
                 call.unmute(completionHandler:{ (error) in
                     if error == nil {
@@ -397,7 +400,7 @@ class CallingViewModel: NSObject, ObservableObject {
 
 extension CallingViewModel: PKPushRegistryDelegate {
     func unRegisterVoIP() {
-//        CallingViewModel.shared().callAgent?.unRegisterPushNotifications(completionHandler: { (error) in
+//        self.callAgent?.unRegisterPushNotifications(completionHandler: { (error) in
 //            if (error != nil) {
 //                print("Register of push notification failed, please try again.\n")
 //            } else {
@@ -431,6 +434,7 @@ extension CallingViewModel: PKPushRegistryDelegate {
 
         if type == .voIP {
             if let incomingCallPushNotification = IncomingCallPushNotification.fromDictionary(payload.dictionaryPayload) {
+                self.configureAudioSession()
                 CallKitManager.shared().reportNewIncomingCall(incomingCallPushNotification: incomingCallPushNotification) { success in
                     if success {
                         print("Handling of report incoming call was succesful.\n")
@@ -441,8 +445,8 @@ extension CallingViewModel: PKPushRegistryDelegate {
                     }
                 }
 
-                if CallingViewModel.shared().callAgent == nil {
-                    CallingViewModel.shared().incomingCallPushNotification = incomingCallPushNotification
+                if self.callAgent == nil {
+                    self.incomingCallPushNotification = incomingCallPushNotification
 
                     print("CallAgent not found.\nConnecting to Communication Services...\n")
                     // MARK: generate communicationUserToken from stored data.
@@ -452,13 +456,13 @@ extension CallingViewModel: PKPushRegistryDelegate {
 
                     if !token.isEmpty && !identifier.isEmpty {
                         let communicationUserToken = CommunicationUserTokenModel(token: token, expiresOn: nil, communicationUserId: identifier)
-                        CallingViewModel.shared().initCallAgent(communicationUserTokenModel: communicationUserToken, displayName: displayName) { (success) in
-                            CallingViewModel.shared().callAgent?.handlePush(notification: incomingCallPushNotification, completionHandler: { error in
+                        self.initCallAgent(communicationUserTokenModel: communicationUserToken, displayName: displayName) { (success) in
+                            self.callAgent?.handlePush(notification: incomingCallPushNotification, completionHandler: { error in
                                 if (error != nil) {
                                     print("Handling of push notification to call failed: \(error.debugDescription)\n")
                                 } else {
                                     print("Handling of push notification to call was successful.\n")
-                                    CallingViewModel.shared().incomingCallPushNotification = nil
+                                    self.incomingCallPushNotification = nil
                                 }
                             })
                         }
@@ -490,19 +494,19 @@ extension CallingViewModel: CallAgentDelegate {
 
         if let addedCall = args.addedCalls?.first(where: {$0.isIncoming }) {
             print("addedCalls: \(args.addedCalls.count)")
-            CallingViewModel.shared().call = addedCall
-            CallingViewModel.shared().call?.delegate = self
-            CallingViewModel.shared().callState = addedCall.state
+            self.call = addedCall
+            self.call?.delegate = self
+            self.callState = addedCall.state
         }
 
         if let removedCall = args.removedCalls?.first {
             print("removedCalls: \(args.removedCalls.count)")
-            if let call = CallingViewModel.shared().call,
+            if let call = self.call,
                let callId = UUID(uuidString: call.callId) {
                 if callId == UUID(uuidString: removedCall.callId) {
-                    CallingViewModel.shared().callState = removedCall.state
-                    CallingViewModel.shared().call?.delegate = nil
-                    CallingViewModel.shared().call = nil
+                    self.callState = removedCall.state
+                    self.call?.delegate = nil
+                    self.call = nil
 
                     // MARK: report CallKitManager for endCall.
                     if let callId = UUID(uuidString: call.callId) {
@@ -521,10 +525,10 @@ extension CallingViewModel: CallDelegate {
         print("\n----------------------------------")
         print("onCallStateChanged: \(String(reflecting: call.state.name))")
         print("----------------------------------\n")
-        CallingViewModel.shared().callState = call.state
+        self.callState = call.state
 
         if call.state == .connected {
-//            if let localVideoStream = CallingViewModel.shared().localVideoStream {
+//            if let localVideoStream = self.localVideoStream {
 //                self.startVideo(call: call, localVideoStream: localVideoStream)
 //            }
         }

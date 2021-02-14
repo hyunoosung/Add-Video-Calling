@@ -34,7 +34,6 @@
 		79A7888425D03A1A007D68C2 /* ProfileCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79A7888325D03A1A007D68C2 /* ProfileCategory.swift */; };
 		79A7888725D03A56007D68C2 /* CommunicationsSetting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79A7888625D03A56007D68C2 /* CommunicationsSetting.swift */; };
 		79A7888A25D03A62007D68C2 /* NotificationsSetting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79A7888925D03A62007D68C2 /* NotificationsSetting.swift */; };
-		79A788CD25D2F6C0007D68C2 /* CallManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79A788CC25D2F6C0007D68C2 /* CallManager.swift */; };
 		79A788D025D2F6F7007D68C2 /* CallKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79A788CF25D2F6F7007D68C2 /* CallKitManager.swift */; };
 		79A788D325D301C9007D68C2 /* CallKitOption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79A788D225D301C9007D68C2 /* CallKitOption.swift */; };
 		79BB891325CDC06000793B44 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79BB891125CDC06000793B44 /* Constants.swift */; };
@@ -77,7 +76,6 @@
 		79A7888325D03A1A007D68C2 /* ProfileCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileCategory.swift; sourceTree = "<group>"; };
 		79A7888625D03A56007D68C2 /* CommunicationsSetting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunicationsSetting.swift; sourceTree = "<group>"; };
 		79A7888925D03A62007D68C2 /* NotificationsSetting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsSetting.swift; sourceTree = "<group>"; };
-		79A788CC25D2F6C0007D68C2 /* CallManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallManager.swift; sourceTree = "<group>"; };
 		79A788CF25D2F6F7007D68C2 /* CallKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallKitManager.swift; sourceTree = "<group>"; };
 		79A788D225D301C9007D68C2 /* CallKitOption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallKitOption.swift; sourceTree = "<group>"; };
 		79BB891125CDC06000793B44 /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
@@ -223,7 +221,6 @@
 				799D7F0125CBBEBF00962035 /* VideoStreamModel.swift */,
 				799D7F0525CBC08400962035 /* LocalVideoStreamModel.swift */,
 				799D7F0825CBC56A00962035 /* RemoteVideoStreamModel.swift */,
-				79A788CC25D2F6C0007D68C2 /* CallManager.swift */,
 				79A788CF25D2F6F7007D68C2 /* CallKitManager.swift */,
 				799F416C25D3F18D00978C1B /* CommunicationUserTokenModel.swift */,
 			);
@@ -366,7 +363,6 @@
 				799D7EF725CBB4D700962035 /* MediaGallery.swift in Sources */,
 				79A7888A25D03A62007D68C2 /* NotificationsSetting.swift in Sources */,
 				79A7888425D03A1A007D68C2 /* ProfileCategory.swift in Sources */,
-				79A788CD25D2F6C0007D68C2 /* CallManager.swift in Sources */,
 				79A21F1425CEDA6A002203FD /* StreamView.swift in Sources */,
 				79BB891425CDC06000793B44 /* PListHelper.swift in Sources */,
 				7966BE6A25C7E88F0028A1F7 /* AuthenticationViewModel.swift in Sources */,
