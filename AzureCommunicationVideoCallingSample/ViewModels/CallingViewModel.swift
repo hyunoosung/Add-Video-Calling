@@ -85,13 +85,6 @@ class CallingViewModel: NSObject, ObservableObject {
     }
 
     func getCall(callId: UUID) -> Call? {
-        // MARK: Should remove logs below.
-//        print("self.callAgent: \(String(describing: self.callAgent))\n")
-//        print("self.call: \(String(describing: self.call))\n")
-//
-//        print("\nself.callAgent: \(String(describing: self.callAgent))\n")
-//        print("slef.call: \(String(describing: self.call))\n")
-
         if let call = self.call {
             print("incoming callId: \(call.callId.uppercased())")
             print("push callId: \(callId)")
