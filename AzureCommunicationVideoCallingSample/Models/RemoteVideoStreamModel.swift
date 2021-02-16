@@ -8,18 +8,13 @@
 import SwiftUI
 import AzureCommunicationCalling
 
-class RemoteVideoStreamModel: VideoStreamModel, RemoteParticipantDelegate, Identifiable {
+class RemoteVideoStreamModel: VideoStreamModel, RemoteParticipantDelegate {
     public var remoteParticipant: RemoteParticipant?
-//    public var remoteVideoStream: RemoteVideoStream?
 
-    public init?(id: String?, identity: CommunicationUserIdentifier?, displayName: String, remoteParticipant: RemoteParticipant?) {
-        if identity != nil {
-            self.remoteParticipant = remoteParticipant
-            super.init(id: id, identity: identity, displayName: displayName)
-            self.remoteParticipant!.delegate = self
-        } else {
-            return nil
-        }
+    public init(identifier: String, displayName: String, remoteParticipant: RemoteParticipant?) {
+        self.remoteParticipant = remoteParticipant
+        super.init(identifier: identifier, displayName: displayName)
+        self.remoteParticipant!.delegate = self
     }
 
     public func createView(remoteVideoStream: RemoteVideoStream?) {
@@ -27,7 +22,7 @@ class RemoteVideoStreamModel: VideoStreamModel, RemoteParticipantDelegate, Ident
             if let remoteVideoStream = remoteVideoStream {
                 let renderer = try Renderer(remoteVideoStream: remoteVideoStream)
                 self.renderer = renderer
-                self.videoStreamView = VideoStreamView(view: (try renderer.createView(with: RenderingOptions(scalingMode: ScalingMode.fit))))
+                self.videoStreamView = VideoStreamView(view: (try renderer.createView()))
             }
         } catch {
             print("Failed starting VideoStreamView for \(String(describing: displayName)) : \(error.localizedDescription)")

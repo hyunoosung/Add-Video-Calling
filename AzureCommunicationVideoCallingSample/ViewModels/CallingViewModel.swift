@@ -126,7 +126,7 @@ class CallingViewModel: NSObject, ObservableObject {
 
                         if let videoDeviceInfo: VideoDeviceInfo = deviceManager?.getCameraList()?.first {
                             self.localVideoStream = LocalVideoStream(camera: videoDeviceInfo)
-                            self.localVideoStreamModel = LocalVideoStreamModel(id: Constants.identifier, identity: nil, displayName: Constants.displayName)
+                            self.localVideoStreamModel = LocalVideoStreamModel(identifier: Constants.identifier, displayName: Constants.displayName)
                             print("LocalVideoStream instance initialized.")
                             completion(true)
                         } else {
@@ -601,15 +601,15 @@ extension CallingViewModel: CallDelegate {
                         print("RemoteParticipant identifier:  \(String(describing: remoteParticipantIdentifier))")
                         print("RemoteParticipant displayName \(String(describing: remoteParticipant.displayName))")
 
-                        let remoteVideoStreamModel = RemoteVideoStreamModel(id: remoteParticipantIdentity.identifier, identity: remoteParticipantIdentity, displayName: remoteParticipant.displayName, remoteParticipant: remoteParticipant)
-                        remoteVideoStreamModels.append(remoteVideoStreamModel!)
+                        let remoteVideoStreamModel = RemoteVideoStreamModel(identifier: remoteParticipantIdentity.identifier, displayName: remoteParticipant.displayName, remoteParticipant: remoteParticipant)
+                        remoteVideoStreamModels.append(remoteVideoStreamModel)
 
                         print("\nRemoteVideoStream count for \(String(describing: remoteParticipant.displayName)):  \(remoteParticipant.videoStreams.count)")
 
                         if remoteParticipant.videoStreams.count > 0 {
                             print("\nBinding remoteVideoStream for \(String(describing: remoteParticipant.displayName))")
                             remoteParticipant.videoStreams.forEach { (remoteVideoStream) in
-                                if self.remoteVideoStreamModels.first(where: {$0.id == remoteParticipantIdentifier }) == nil {
+                                if self.remoteVideoStreamModels.first(where: {$0.identifier == remoteParticipantIdentifier }) == nil {
                                     print("\nBinding remoteVideoStream for \(String(describing: remoteVideoStream.id))")
 
 //                                    remoteVideoStreamModel!.createView(remoteVideoStream: remoteVideoStream)

@@ -20,9 +20,3 @@ struct StreamView: View {
         }
     }
 }
-
-struct StreamView_Previews: PreviewProvider {
-    static var previews: some View {
-        StreamView(remoteVideoStreamModel: RemoteVideoStreamModel(id: nil, identity: nil, displayName: "DisplayName", remoteParticipant: nil)!)
-    }
-}
