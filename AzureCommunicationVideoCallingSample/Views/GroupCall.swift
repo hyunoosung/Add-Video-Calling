@@ -12,36 +12,10 @@ struct GroupCall: View {
     @EnvironmentObject var callingViewModel: CallingViewModel
 
     var body: some View {
-        Group {
             Grid(callingViewModel.remoteVideoStreamModels) { stream in
-//                Text(stream.displayName)
                 StreamView(remoteVideoStreamModel: stream)
                     .padding()
             }
-            HStack {
-                Button(action: { callingViewModel.stopVideo() }, label: {
-                    HStack {
-                        Spacer()
-                        Text("Camera")
-                        Spacer()
-                    }
-                })
-                Button(action: { callingViewModel.mute() }, label: {
-                    HStack {
-                        Spacer()
-                        Text("Mute")
-                        Spacer()
-                    }
-                })
-                Button(action: { callingViewModel.endCall() }, label: {
-                    HStack {
-                        Spacer()
-                        Text("End Call")
-                        Spacer()
-                    }
-                })
-            }
-        }
     }
 }
 

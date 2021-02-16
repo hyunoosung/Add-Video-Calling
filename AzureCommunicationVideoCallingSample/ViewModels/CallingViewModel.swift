@@ -596,50 +596,35 @@ extension CallingViewModel: CallDelegate {
 
                 addedParticipants.forEach { (remoteParticipant) in
                     if remoteParticipant.identity is CommunicationUserIdentifier {
-                        let remoteParticipantIdentity = remoteParticipant.identity as! CommunicationUserIdentifier
-                        let remoteParticipantIdentifier = remoteParticipantIdentity.identifier
-                        print("RemoteParticipant identifier:  \(String(describing: remoteParticipantIdentifier))")
-                        print("RemoteParticipant displayName \(String(describing: remoteParticipant.displayName))")
+                        let communicationUserIdentifier = remoteParticipant.identity as! CommunicationUserIdentifier
+                        print("addedParticipant identifier:  \(String(describing: communicationUserIdentifier))")
+                        print("addedParticipant displayName \(String(describing: remoteParticipant.displayName))")
+                        print("addedParticipant streams \(String(describing: remoteParticipant.videoStreams.count))")
 
-                        let remoteVideoStreamModel = RemoteVideoStreamModel(identifier: remoteParticipantIdentity.identifier, displayName: remoteParticipant.displayName, remoteParticipant: remoteParticipant)
+                        let remoteVideoStreamModel = RemoteVideoStreamModel(identifier: communicationUserIdentifier.identifier, displayName: remoteParticipant.displayName, remoteParticipant: remoteParticipant)
                         remoteVideoStreamModels.append(remoteVideoStreamModel)
-
-                        print("\nRemoteVideoStream count for \(String(describing: remoteParticipant.displayName)):  \(remoteParticipant.videoStreams.count)")
-
-                        if remoteParticipant.videoStreams.count > 0 {
-                            print("\nBinding remoteVideoStream for \(String(describing: remoteParticipant.displayName))")
-                            remoteParticipant.videoStreams.forEach { (remoteVideoStream) in
-                                if self.remoteVideoStreamModels.first(where: {$0.identifier == remoteParticipantIdentifier }) == nil {
-                                    print("\nBinding remoteVideoStream for \(String(describing: remoteVideoStream.id))")
-
-//                                    remoteVideoStreamModel!.createView(remoteVideoStream: remoteVideoStream)
-                                }
-                            }
-                        } else {
-                            print("RemoteVideoStream for \(String(describing: remoteParticipant.displayName)) not found.")
-                        }
-
-//                        if callerIdentifier != nil {
-//                            print("callerIdentifier: \(String(describing: callerIdentifier))")
-//                            if callerIdentifier == remoteParticipantIdentifier {
-//                                callerDisplayName = remoteParticipant.displayName ?? "No displayName"
-//                                print("Incoming callerDisplayName: \(String(describing: callerDisplayName))")
-//                            }
-//                        }
                     }
                 }
             }
         }
 
         if let removedParticipants = args.removedParticipants {
-            if !removedParticipants.isEmpty {
+            if removedParticipants.count > 0 {
                 print("removedParticipants: \(String(describing: args.removedParticipants.count))")
 
-                if callerIdentifier != nil {
-                    print("callerIdentifier: \(String(describing: callerIdentifier))")
-                    if let callerRemoteParticipant = args.removedParticipants.first(where: {($0.identity as! CommunicationUserIdentifier).identifier == callerIdentifier}) {
-                        let callerDisplayName = callerRemoteParticipant.displayName ?? "No displayName"
-                        print("Removed callerDisplayName: \(String(describing: callerDisplayName))")
+                removedParticipants.forEach { (remoteParticipant) in
+                    if remoteParticipant.identity is CommunicationUserIdentifier {
+                        let communicationUserIdentifier = remoteParticipant.identity as! CommunicationUserIdentifier
+                        print("removedParticipant identifier:  \(String(describing: communicationUserIdentifier))")
+                        print("removedParticipant displayName \(String(describing: remoteParticipant.displayName))")
+
+                        if let removedIndex = remoteVideoStreamModels.firstIndex(where: {$0.identifier == communicationUserIdentifier.identifier}) {
+                            let remoteVideoStreamModel = remoteVideoStreamModels[removedIndex]
+                            remoteVideoStreamModel.remoteParticipant?.delegate = nil
+                            remoteVideoStreamModel.renderer?.dispose()
+                            remoteVideoStreamModel.videoStreamView = nil
+                            remoteVideoStreamModels.remove(at: removedIndex)
+                        }
                     }
                 }
             }

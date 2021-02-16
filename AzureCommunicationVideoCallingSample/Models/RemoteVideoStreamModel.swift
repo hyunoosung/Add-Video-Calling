@@ -15,17 +15,29 @@ class RemoteVideoStreamModel: VideoStreamModel, RemoteParticipantDelegate {
         self.remoteParticipant = remoteParticipant
         super.init(identifier: identifier, displayName: displayName)
         self.remoteParticipant!.delegate = self
+
+        if let streams = remoteParticipant?.videoStreams {
+            if let stream = streams.first {
+                self.addStream(remoteVideoStream: stream)
+            }
+        }
     }
 
-    public func createView(remoteVideoStream: RemoteVideoStream?) {
+    private func addStream(remoteVideoStream: RemoteVideoStream) {
         do {
-            if let remoteVideoStream = remoteVideoStream {
-                let renderer = try Renderer(remoteVideoStream: remoteVideoStream)
-                self.renderer = renderer
-                self.videoStreamView = VideoStreamView(view: (try renderer.createView()))
-            }
+            let renderer = try Renderer(remoteVideoStream: remoteVideoStream)
+            self.renderer = renderer
+            self.videoStreamView = VideoStreamView(view: (try renderer.createView()))
+            print("Remote VideoStreamView started!")
         } catch {
             print("Failed starting VideoStreamView for \(String(describing: displayName)) : \(error.localizedDescription)")
+        }
+    }
+
+    private func removeStream(stream: RemoteVideoStream?) {
+        if stream != nil {
+            self.renderer?.dispose()
+            self.videoStreamView = nil
         }
     }
 
@@ -40,19 +52,15 @@ class RemoteVideoStreamModel: VideoStreamModel, RemoteParticipantDelegate {
                 print("RemoteParticipant displayName \(String(describing: remoteParticipant.displayName))")
 
                 if let addedStreams = args.addedRemoteVideoStreams {
-                    print("AddedStreams: \(addedStreams.count)")
-                    addedStreams.forEach { (remoteVideoStream) in
-                        self.createView(remoteVideoStream: remoteVideoStream)
+                    print("addedStreams: \(addedStreams.count)")
+                    if let stream = addedStreams.first {
+                        self.addStream(remoteVideoStream: stream)
                     }
                 }
 
                 if let removedStreams = args.removedRemoteVideoStreams {
                     print("RemovedStreams: \(removedStreams.count)")
-                    removedStreams.forEach { (remoteVideoStream) in
-                        print("remoteVideoStream.id: \(remoteVideoStream.id)")
-                        self.renderer?.dispose()
-                        self.videoStreamView = nil
-                    }
+                    self.removeStream(stream: removedStreams.first)
                 }
             }
         }
