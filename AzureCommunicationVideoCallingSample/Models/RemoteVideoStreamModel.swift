@@ -47,7 +47,7 @@ class RemoteVideoStreamModel: VideoStreamModel, RemoteParticipantDelegate, Ident
                 if let addedStreams = args.addedRemoteVideoStreams {
                     print("AddedStreams: \(addedStreams.count)")
                     addedStreams.forEach { (remoteVideoStream) in
-//                        self.createView(remoteVideoStream: remoteVideoStream)
+                        self.createView(remoteVideoStream: remoteVideoStream)
                     }
                 }
 
@@ -61,4 +61,32 @@ class RemoteVideoStreamModel: VideoStreamModel, RemoteParticipantDelegate, Ident
                 }
             }
         }
+
+    func onParticipantStateChanged(_ remoteParticipant: RemoteParticipant!, args: PropertyChangedEventArgs!) {
+        print("\n-------------------------")
+        print("onParticipantStateChanged")
+        print("-------------------------\n")
+
+        if remoteParticipant.identity is CommunicationUserIdentifier {
+            let remoteParticipantIdentity = remoteParticipant.identity as! CommunicationUserIdentifier
+            print("RemoteParticipant identifier:  \(String(describing: remoteParticipantIdentity.identifier))")
+            print("RemoteParticipant displayName \(String(describing: remoteParticipant.displayName))")
+        } else {
+            print("remoteParticipant.identity: UnknownIdentifier")
+        }
+    }
+
+    func onIsMutedChanged(_ remoteParticipant: RemoteParticipant!, args: PropertyChangedEventArgs!) {
+        print("\n----------------")
+        print("onIsMutedChanged")
+        print("----------------\n")
+    }
+
+    func onIsSpeakingChanged(_ remoteParticipant: RemoteParticipant!, args: PropertyChangedEventArgs!) {
+
+    }
+
+    func onDisplayNameChanged(_ remoteParticipant: RemoteParticipant!, args: PropertyChangedEventArgs!) {
+
+    }
 }

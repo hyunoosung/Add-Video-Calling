@@ -14,11 +14,9 @@ struct GroupCall: View {
     var body: some View {
         Group {
             Grid(callingViewModel.remoteVideoStreamModels) { stream in
-                Text(stream.displayName)
-//                StreamView(remoteVideoStreamModel: stream)
-//                    .onAppear(perfom: {
-//                        stream.createView(remoteVideoStream: stream.remoteVideoStream)
-//                    })
+//                Text(stream.displayName)
+                StreamView(remoteVideoStreamModel: stream)
+                    .padding()
             }
             HStack {
                 Button(action: { callingViewModel.stopVideo() }, label: {
