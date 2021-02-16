@@ -8,11 +8,11 @@
 import SwiftUI
 import AzureCommunicationCalling
 
-class RemoteVideoStreamModel: VideoStreamModel, RemoteParticipantDelegate {
+class RemoteVideoStreamModel: VideoStreamModel, RemoteParticipantDelegate, Identifiable {
     public var remoteParticipant: RemoteParticipant?
 //    public var remoteVideoStream: RemoteVideoStream?
 
-    public init?(id: String?, identity: CommunicationUserIdentifier?, displayName: String?, remoteParticipant: RemoteParticipant?) {
+    public init?(id: String?, identity: CommunicationUserIdentifier?, displayName: String, remoteParticipant: RemoteParticipant?) {
         if identity != nil {
             self.remoteParticipant = remoteParticipant
             super.init(id: id, identity: identity, displayName: displayName)
@@ -47,7 +47,7 @@ class RemoteVideoStreamModel: VideoStreamModel, RemoteParticipantDelegate {
                 if let addedStreams = args.addedRemoteVideoStreams {
                     print("AddedStreams: \(addedStreams.count)")
                     addedStreams.forEach { (remoteVideoStream) in
-                        self.createView(remoteVideoStream: remoteVideoStream)
+//                        self.createView(remoteVideoStream: remoteVideoStream)
                     }
                 }
 

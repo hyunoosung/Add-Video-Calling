@@ -14,7 +14,6 @@ struct ContentView: View {
     @EnvironmentObject var notificationViewModel: NotificationViewModel
     @EnvironmentObject var callingViewModel: CallingViewModel
     @State private var sheetType: SheetType?
-    @State private var showingNotificationAlert = false
     @State private var showingAlert = false
     @State var notification: MSNotificationHubMessage = MSNotificationHubMessage()
     
@@ -28,13 +27,6 @@ struct ContentView: View {
                 }
             }
             .navigationBarTitle(authenticationViewModel.currentTab.name, displayMode: .inline)
-//            .alert(isPresented: $showingAlert) {
-//                Alert(title: Text("Incoming call from \(callingViewModel.callerDisplayName!)"), message: Text("Would you like to accept the call?"), primaryButton: .default(Text("Confirm")) {
-//                    callingViewModel.acceptCall()
-//                }, secondaryButton: .cancel() {
-//                    callingViewModel.endCall()
-//                })
-//            }
         }
         .onReceive(authenticationViewModel.$signInRequired, perform: { signInRequired in
             print("signInRequired state changed to \(signInRequired)\n")
@@ -42,12 +34,6 @@ struct ContentView: View {
                 sheetType = .signInRequired
             }
         })
-//        .onReceive(callingViewModel.$call, perform: { call in
-//            if call == nil {
-//                print("No call found.")
-//                showingAlert = false
-//            }
-//        })
         .onReceive(callingViewModel.$callState, perform: { callState in
             if callState == .connected {
                 self.sheetType = .callView
@@ -55,21 +41,13 @@ struct ContentView: View {
                 self.sheetType = .none
             }
         })
-//        .onReceive(callingViewModel.$callerDisplayName, perform: { callerDisplayName in
-//            if callerDisplayName != nil {
-//                showingAlert = true
-//            }
-//        })
-        .onReceive(self.notificationViewModel.$pushChannel, perform: { pushChannel in
-//            CallingViewModel.shared().callingViewModel.registerPushNotifications(deviceToken: pushChannel )
-        })
         .onReceive(self.notificationViewModel.messageReceived) { (notification) in
             self.didReceivePushNotification(notification: notification, messageTapped: false)
         }
         .onReceive(self.notificationViewModel.messageTapped) { (notification) in
             self.didReceivePushNotification(notification: notification, messageTapped: true)
         }
-        .alert(isPresented: $showingNotificationAlert) {
+        .alert(isPresented: $showingAlert) {
             Alert(title: Text(self.notification.title ?? "Important message"), message: Text(self.notification.body ?? "Wear sunscreen"), dismissButton: .default(Text("Got it!")))
         }
         .fullScreenCover(item: $sheetType) { item in
@@ -122,7 +100,7 @@ struct ContentView: View {
 
         // Display Alert if message is tapped from background.
         if messageTapped {
-            self.showingNotificationAlert = true
+            self.showingAlert = true
         }
     }
 }

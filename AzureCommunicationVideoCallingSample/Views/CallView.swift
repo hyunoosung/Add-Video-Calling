@@ -13,14 +13,12 @@ struct CallView: View {
 
     var body: some View {
         Group {
-            if callingViewModel.remoteVideoStreamModels.isEmpty {
-                Text("Initializing streams")
+            if callingViewModel.remoteVideoStreamModels.count == 1 {
+                DirectCall()
+            } else if callingViewModel.remoteVideoStreamModels.count > 1{
+                GroupCall()
             } else {
-                if callingViewModel.remoteVideoStreamModels.count > 1 {
-                    GroupCall()
-                } else {
-                    DirectCall()
-                }
+                Text("Initializing streams")
             }
         }
         .environmentObject(authenticationViewModel)

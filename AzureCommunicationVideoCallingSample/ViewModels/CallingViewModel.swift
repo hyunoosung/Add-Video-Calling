@@ -28,6 +28,7 @@ class CallingViewModel: NSObject, ObservableObject {
 
     @Published var incomingCallPushNotification: IncomingCallPushNotification?
     @Published var callee: String = Constants.callee
+    @Published var groupId: String = "29228d3e-040e-4656-a70e-890ab4e173e5"
 
     static func shared() -> CallingViewModel {
         if sharedInstance == nil {
@@ -247,6 +248,42 @@ class CallingViewModel: NSObject, ObservableObject {
                 self.localVideoStreamModel?.renderer?.dispose()
                 self.localVideoStreamModel?.renderer = nil
                 self.localVideoStreamModel?.videoStreamView = nil
+            }
+        }
+    }
+
+    func joinGroup() {
+        requestRecordPermission { success in
+            guard success else {
+                print("recordPermission not authorized.")
+                return
+            }
+
+            if let callAgent = self.callAgent {
+                let groupCallLocator = GroupCallLocator(groupId: UUID(uuidString: self.groupId))
+                let joinCallOptions = JoinCallOptions()
+
+                self.getDeviceManager { _ in
+                    if let localVideoStream = self.localVideoStream {
+                        let videoOptions = VideoOptions(localVideoStream: localVideoStream)
+                        
+                        joinCallOptions?.videoOptions = videoOptions
+
+                        self.call = callAgent.join(with: groupCallLocator, joinCallOptions: joinCallOptions)
+
+                        self.call?.delegate = self
+                        self.startVideo(call: self.call!, localVideoStream: localVideoStream)
+                        CallKitManager.shared().startOutgoingCall(call: self.call!, callerDisplayName: Constants.displayName)
+                        print("outgoing call started.")
+                    } else {
+                        self.call = self.callAgent?.join(with: groupCallLocator, joinCallOptions: joinCallOptions)
+                        CallKitManager.shared().startOutgoingCall(call: self.call!, callerDisplayName: Constants.displayName)
+                        self.call?.delegate = self
+                        print("outgoing call started.")
+                    }
+                }
+            } else {
+                print("callAgent not initialized.\n")
             }
         }
     }
@@ -575,7 +612,7 @@ extension CallingViewModel: CallDelegate {
                                 if self.remoteVideoStreamModels.first(where: {$0.id == remoteParticipantIdentifier }) == nil {
                                     print("\nBinding remoteVideoStream for \(String(describing: remoteVideoStream.id))")
 
-                                    remoteVideoStreamModel!.createView(remoteVideoStream: remoteVideoStream)
+//                                    remoteVideoStreamModel!.createView(remoteVideoStream: remoteVideoStream)
                                 }
                             }
                         } else {
