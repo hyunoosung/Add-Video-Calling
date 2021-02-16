@@ -28,6 +28,7 @@ class CallingViewModel: NSObject, ObservableObject {
 
     @Published var incomingCallPushNotification: IncomingCallPushNotification?
     @Published var callee: String = Constants.callee
+    @Published var groupId: String = "29228d3e-040e-4656-a70e-890ab4e173e5"
 
     static func shared() -> CallingViewModel {
         if sharedInstance == nil {
@@ -125,7 +126,7 @@ class CallingViewModel: NSObject, ObservableObject {
 
                         if let videoDeviceInfo: VideoDeviceInfo = deviceManager?.getCameraList()?.first {
                             self.localVideoStream = LocalVideoStream(camera: videoDeviceInfo)
-                            self.localVideoStreamModel = LocalVideoStreamModel(id: Constants.identifier, identity: nil, displayName: Constants.displayName)
+                            self.localVideoStreamModel = LocalVideoStreamModel(identifier: Constants.identifier, displayName: Constants.displayName)
                             print("LocalVideoStream instance initialized.")
                             completion(true)
                         } else {
@@ -247,6 +248,42 @@ class CallingViewModel: NSObject, ObservableObject {
                 self.localVideoStreamModel?.renderer?.dispose()
                 self.localVideoStreamModel?.renderer = nil
                 self.localVideoStreamModel?.videoStreamView = nil
+            }
+        }
+    }
+
+    func joinGroup() {
+        requestRecordPermission { success in
+            guard success else {
+                print("recordPermission not authorized.")
+                return
+            }
+
+            if let callAgent = self.callAgent {
+                let groupCallLocator = GroupCallLocator(groupId: UUID(uuidString: self.groupId))
+                let joinCallOptions = JoinCallOptions()
+
+                self.getDeviceManager { _ in
+                    if let localVideoStream = self.localVideoStream {
+                        let videoOptions = VideoOptions(localVideoStream: localVideoStream)
+                        
+                        joinCallOptions?.videoOptions = videoOptions
+
+                        self.call = callAgent.join(with: groupCallLocator, joinCallOptions: joinCallOptions)
+
+                        self.call?.delegate = self
+                        self.startVideo(call: self.call!, localVideoStream: localVideoStream)
+                        CallKitManager.shared().startOutgoingCall(call: self.call!, callerDisplayName: Constants.displayName)
+                        print("outgoing call started.")
+                    } else {
+                        self.call = self.callAgent?.join(with: groupCallLocator, joinCallOptions: joinCallOptions)
+                        CallKitManager.shared().startOutgoingCall(call: self.call!, callerDisplayName: Constants.displayName)
+                        self.call?.delegate = self
+                        print("outgoing call started.")
+                    }
+                }
+            } else {
+                print("callAgent not initialized.\n")
             }
         }
     }
@@ -559,50 +596,35 @@ extension CallingViewModel: CallDelegate {
 
                 addedParticipants.forEach { (remoteParticipant) in
                     if remoteParticipant.identity is CommunicationUserIdentifier {
-                        let remoteParticipantIdentity = remoteParticipant.identity as! CommunicationUserIdentifier
-                        let remoteParticipantIdentifier = remoteParticipantIdentity.identifier
-                        print("RemoteParticipant identifier:  \(String(describing: remoteParticipantIdentifier))")
-                        print("RemoteParticipant displayName \(String(describing: remoteParticipant.displayName))")
+                        let communicationUserIdentifier = remoteParticipant.identity as! CommunicationUserIdentifier
+                        print("addedParticipant identifier:  \(String(describing: communicationUserIdentifier))")
+                        print("addedParticipant displayName \(String(describing: remoteParticipant.displayName))")
+                        print("addedParticipant streams \(String(describing: remoteParticipant.videoStreams.count))")
 
-                        let remoteVideoStreamModel = RemoteVideoStreamModel(id: remoteParticipantIdentity.identifier, identity: remoteParticipantIdentity, displayName: remoteParticipant.displayName, remoteParticipant: remoteParticipant)
-                        remoteVideoStreamModels.append(remoteVideoStreamModel!)
-
-                        print("\nRemoteVideoStream count for \(String(describing: remoteParticipant.displayName)):  \(remoteParticipant.videoStreams.count)")
-
-                        if remoteParticipant.videoStreams.count > 0 {
-                            print("\nBinding remoteVideoStream for \(String(describing: remoteParticipant.displayName))")
-                            remoteParticipant.videoStreams.forEach { (remoteVideoStream) in
-                                if self.remoteVideoStreamModels.first(where: {$0.id == remoteParticipantIdentifier }) == nil {
-                                    print("\nBinding remoteVideoStream for \(String(describing: remoteVideoStream.id))")
-
-                                    remoteVideoStreamModel!.createView(remoteVideoStream: remoteVideoStream)
-                                }
-                            }
-                        } else {
-                            print("RemoteVideoStream for \(String(describing: remoteParticipant.displayName)) not found.")
-                        }
-
-//                        if callerIdentifier != nil {
-//                            print("callerIdentifier: \(String(describing: callerIdentifier))")
-//                            if callerIdentifier == remoteParticipantIdentifier {
-//                                callerDisplayName = remoteParticipant.displayName ?? "No displayName"
-//                                print("Incoming callerDisplayName: \(String(describing: callerDisplayName))")
-//                            }
-//                        }
+                        let remoteVideoStreamModel = RemoteVideoStreamModel(identifier: communicationUserIdentifier.identifier, displayName: remoteParticipant.displayName, remoteParticipant: remoteParticipant)
+                        remoteVideoStreamModels.append(remoteVideoStreamModel)
                     }
                 }
             }
         }
 
         if let removedParticipants = args.removedParticipants {
-            if !removedParticipants.isEmpty {
+            if removedParticipants.count > 0 {
                 print("removedParticipants: \(String(describing: args.removedParticipants.count))")
 
-                if callerIdentifier != nil {
-                    print("callerIdentifier: \(String(describing: callerIdentifier))")
-                    if let callerRemoteParticipant = args.removedParticipants.first(where: {($0.identity as! CommunicationUserIdentifier).identifier == callerIdentifier}) {
-                        let callerDisplayName = callerRemoteParticipant.displayName ?? "No displayName"
-                        print("Removed callerDisplayName: \(String(describing: callerDisplayName))")
+                removedParticipants.forEach { (remoteParticipant) in
+                    if remoteParticipant.identity is CommunicationUserIdentifier {
+                        let communicationUserIdentifier = remoteParticipant.identity as! CommunicationUserIdentifier
+                        print("removedParticipant identifier:  \(String(describing: communicationUserIdentifier))")
+                        print("removedParticipant displayName \(String(describing: remoteParticipant.displayName))")
+
+                        if let removedIndex = remoteVideoStreamModels.firstIndex(where: {$0.identifier == communicationUserIdentifier.identifier}) {
+                            let remoteVideoStreamModel = remoteVideoStreamModels[removedIndex]
+                            remoteVideoStreamModel.remoteParticipant?.delegate = nil
+                            remoteVideoStreamModel.renderer?.dispose()
+                            remoteVideoStreamModel.videoStreamView = nil
+                            remoteVideoStreamModels.remove(at: removedIndex)
+                        }
                     }
                 }
             }
@@ -624,39 +646,6 @@ extension CallingViewModel: CallDelegate {
     }
 }
 
-extension CallingViewModel: RemoteParticipantDelegate {
-    func onParticipantStateChanged(_ remoteParticipant: RemoteParticipant!, args: PropertyChangedEventArgs!) {
-        print("\n-------------------------")
-        print("onParticipantStateChanged")
-        print("-------------------------\n")
-
-        if remoteParticipant.identity is CommunicationUserIdentifier {
-            let remoteParticipantIdentity = remoteParticipant.identity as! CommunicationUserIdentifier
-            print("RemoteParticipant identifier:  \(String(describing: remoteParticipantIdentity.identifier))")
-            print("RemoteParticipant displayName \(String(describing: remoteParticipant.displayName))")
-        } else {
-            print("remoteParticipant.identity: UnknownIdentifier")
-        }
-    }
-
-    func onIsMutedChanged(_ remoteParticipant: RemoteParticipant!, args: PropertyChangedEventArgs!) {
-        print("\n----------------")
-        print("onIsMutedChanged")
-        print("----------------\n")
-    }
-
-    func onIsSpeakingChanged(_ remoteParticipant: RemoteParticipant!, args: PropertyChangedEventArgs!) {
-
-    }
-
-    func onDisplayNameChanged(_ remoteParticipant: RemoteParticipant!, args: PropertyChangedEventArgs!) {
-
-    }
-
-    func onVideoStreamsUpdated(_ remoteParticipant: RemoteParticipant!, args: RemoteVideoStreamsEventArgs!) {
-
-    }
-}
 
 extension CallingViewModel: DeviceManagerDelegate {
     func onAudioDevicesUpdated(_ deviceManager: DeviceManager!, args: AudioDevicesUpdatedEventArgs!) {

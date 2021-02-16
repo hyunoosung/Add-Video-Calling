@@ -9,13 +9,6 @@ import SwiftUI
 import AzureCommunicationCalling
 
 class LocalVideoStreamModel: VideoStreamModel {
-//    public var localVideoStream: LocalVideoStream?
-
-//    public init(id: String, identity: CommunicationUserIdentifier?, displayName: String?, localVideoStream: LocalVideoStream?) {
-//        super.init(id: id, identity: identity, displayName: displayName)
-//        self.localVideoStream = localVideoStream
-//    }
-
     public func createView(localVideoStream: LocalVideoStream?) {
         do {
             if let localVideoStream = localVideoStream {

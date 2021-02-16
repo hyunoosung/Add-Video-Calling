@@ -20,6 +20,28 @@ struct HomeView: View {
                     Form {
                         Section {
                             HStack(alignment: .top) {
+                                TextField("GroupId", text: $callingViewModel.groupId)
+
+                                Button(action: {
+                                    callingViewModel.callee = ""
+                                }, label: {
+                                    Image(systemName: "delete.left")
+                                        .foregroundColor(Color(UIColor.opaqueSeparator))
+                                })
+                            }
+
+                            Button(action: joinGroup) {
+                                Text("Join Group")
+                            }
+//                            .disabled((callingViewModel.call?.state == .incoming ||
+//                                        callingViewModel.call?.state == .connecting ||
+//                                        callingViewModel.call?.state == .ringing ||
+//                                        callingViewModel.call?.state == .connected ||
+//                                        callingViewModel.call?.state == .disconnecting))
+                        }
+
+                        Section {
+                            HStack(alignment: .top) {
                                 TextField("Who would you like to call?", text: $callingViewModel.callee)
 
                                 Button(action: {
@@ -64,6 +86,10 @@ struct HomeView: View {
                 self.authenticationViewModel.signInRequired = false
             }
         })
+    }
+
+    func joinGroup() {
+        callingViewModel.joinGroup()
     }
 
     func startCall() {

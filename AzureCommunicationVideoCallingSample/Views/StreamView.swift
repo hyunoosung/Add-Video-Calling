@@ -16,12 +16,7 @@ struct StreamView: View {
             if remoteVideoStreamModel.videoStreamView != nil {
                 remoteVideoStreamModel.videoStreamView
             }
+            TextField("DisplayName", text: $remoteVideoStreamModel.displayName)
         }
-    }
-}
-
-struct StreamView_Previews: PreviewProvider {
-    static var previews: some View {
-        StreamView(remoteVideoStreamModel: RemoteVideoStreamModel(id: nil, identity: nil, displayName: nil, remoteParticipant: nil)!)
     }
 }
