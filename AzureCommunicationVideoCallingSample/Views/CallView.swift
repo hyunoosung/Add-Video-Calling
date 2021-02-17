@@ -12,39 +12,27 @@ struct CallView: View {
     @EnvironmentObject var callingViewModel: CallingViewModel
 
     var body: some View {
-        VStack {
-            if callingViewModel.remoteVideoStreamModels.count == 1 {
+        VStack(alignment: .center, spacing: 0) {
+            if callingViewModel.remoteVideoStreamModels.count == 0 {
+                VStack {
+                    Text("Waiting for other participants...")
+                    Button(action: { callingViewModel.endCall() }, label: {
+                       HStack {
+                           Spacer()
+                           Text("Leave Group Call")
+                           Spacer()
+                       }
+                   })
+
+                }
+            } else if callingViewModel.remoteVideoStreamModels.count == 1 {
                 DirectCall()
+                    .environmentObject(callingViewModel)
             } else {
                 GroupCall()
-            }
-            Spacer()
-            HStack {
-                Button(action: { }, label: {
-                    HStack {
-                        Spacer()
-                        Text("Camera")
-                        Spacer()
-                    }
-                })
-                Button(action: { callingViewModel.mute() }, label: {
-                    HStack {
-                        Spacer()
-                        Text("Mute")
-                        Spacer()
-                    }
-                })
-                Button(action: { callingViewModel.endCall() }, label: {
-                    HStack {
-                        Spacer()
-                        Text("End Call")
-                        Spacer()
-                    }
-                })
+                    .environmentObject(callingViewModel)
             }
         }
-        .environmentObject(authenticationViewModel)
-        .environmentObject(callingViewModel)
     }
 }
 

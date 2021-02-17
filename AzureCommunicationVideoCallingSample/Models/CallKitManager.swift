@@ -30,7 +30,7 @@ class CallKitManager: NSObject {
         configuration.maximumCallGroups = 1
         configuration.maximumCallsPerCallGroup = 1
         configuration.supportsVideo = true
-        configuration.iconTemplateImageData = UIImage(named: "video")?.pngData()
+        configuration.iconTemplateImageData = UIImage(systemName: "video")?.pngData()
         provider = CXProvider(configuration: configuration)
         super.init()
         provider.setDelegate(self, queue: nil)

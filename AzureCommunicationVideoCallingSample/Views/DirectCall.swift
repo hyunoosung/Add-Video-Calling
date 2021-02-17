@@ -31,53 +31,57 @@ struct DirectCall: View {
                                 .frame(width: 120, height: 192)
                                 .cornerRadius(16)
                         }
-
-                        VStack {
-                            Spacer()
-                            Text("status")
-                                .foregroundColor(.white)
-                                .font(.subheadline)
-                                .padding(.bottom, 5)
-                        }
-                        .zIndex(1)
                     }
                     .frame(width: 120, height: 192)
                     Spacer()
                 }
                 .padding()
                 .padding(.top, 50)
+
                 Spacer()
+                HStack {
+                    Button(action: { callingViewModel.toggleVideo() }, label: {
+                        HStack {
+                            Spacer()
+                            if callingViewModel.isLocalVideoStreamEnabled {
+                                Image(systemName: "video")
+                                    .padding()
+                            } else {
+                                Image(systemName: "video.slash")
+                                    .padding()
+                            }
+                            Spacer()
+                        }
+                    })
+                    Button(action: { callingViewModel.mute() }, label: {
+                        HStack {
+                            Spacer()
+                            if callingViewModel.isMicrophoneMuted {
+                                Image(systemName: "speaker.slash")
+                                    .padding()
+                            } else {
+                                Image(systemName: "speaker.wave.2")
+                                    .padding()
+                            }
+                            Spacer()
+                        }
+                    })
+                    Button(action: { callingViewModel.endCall() }, label: {
+                        HStack {
+                            Spacer()
+                            Image(systemName: "phone.down")
+                                .padding()
+                            Spacer()
+                        }
+                    })
+                }
+                .font(.largeTitle)
+                .padding(.bottom, 5)
             }
             .zIndex(1)
 
-//            VStack {
-//                Spacer()
-//                HStack {
-//                    Button(action: { }, label: {
-//                        HStack {
-//                            Spacer()
-//                            Text("Camera")
-//                            Spacer()
-//                        }
-//                    })
-//                    Button(action: { callingViewModel.mute() }, label: {
-//                        HStack {
-//                            Spacer()
-//                            Text("Mute")
-//                            Spacer()
-//                        }
-//                    })
-//                    Button(action: { callingViewModel.endCall() }, label: {
-//                        HStack {
-//                            Spacer()
-//                            Text("End Call")
-//                            Spacer()
-//                        }
-//                    })
-//                }
-//            }
-//            .zIndex(2)
         }
+        .ignoresSafeArea(edges: .all)
     }
 }
 

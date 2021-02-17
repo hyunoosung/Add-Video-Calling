@@ -25,7 +25,8 @@ class CallingViewModel: NSObject, ObservableObject {
     @Published var callState: CallState = CallState.none
     @Published var localVideoStreamModel: LocalVideoStreamModel?
     @Published var remoteVideoStreamModels: [RemoteVideoStreamModel] = []
-
+    @Published var isLocalVideoStreamEnabled:Bool = false
+    @Published var isMicrophoneMuted:Bool = false
     @Published var incomingCallPushNotification: IncomingCallPushNotification?
     @Published var callee: String = Constants.callee
     @Published var groupId: String = "29228d3e-040e-4656-a70e-890ab4e173e5"
@@ -219,6 +220,7 @@ class CallingViewModel: NSObject, ObservableObject {
                         } else {
                             print("LocalVideo started successfully.\n")
                             localVideoStreamModel.createView(localVideoStream: localVideoStream)
+                            self.isLocalVideoStreamEnabled = true
                         }
                     }
                 }
@@ -236,6 +238,9 @@ class CallingViewModel: NSObject, ObservableObject {
                     competion(false)
                 } else {
                     print("LocalVideo stopped successfully.\n")
+                    if self.localVideoStreamModel != nil {
+                        self.isLocalVideoStreamEnabled = false
+                    }
                     competion(true)
                 }
             }
@@ -404,6 +409,7 @@ class CallingViewModel: NSObject, ObservableObject {
                 call.unmute(completionHandler:{ (error) in
                     if error == nil {
                         print("Successfully un-muted")
+                        self.isMicrophoneMuted = false
                     } else {
                         print("Failed to unmute")
                     }
@@ -412,10 +418,22 @@ class CallingViewModel: NSObject, ObservableObject {
                 call.mute(completionHandler: { (error) in
                     if error == nil {
                         print("Successfully muted")
+                        self.isMicrophoneMuted = true
                     } else {
                         print("Failed to mute")
                     }
                 })
+            }
+        }
+    }
+
+    func toggleVideo() {
+        if let call = self.call,
+           let localVideoStream = self.localVideoStream {
+            if isLocalVideoStreamEnabled {
+                stopVideo()
+            } else {
+                startVideo(call: call, localVideoStream: localVideoStream)
             }
         }
     }
@@ -526,6 +544,7 @@ extension CallingViewModel: CallAgentDelegate {
             self.call = addedCall
             self.call?.delegate = self
             self.callState = addedCall.state
+            self.isMicrophoneMuted = addedCall.isMicrophoneMuted
         }
 
         if let removedCall = args.removedCalls?.first {
@@ -581,14 +600,6 @@ extension CallingViewModel: CallDelegate {
         print("\n---------------------------")
         print("onRemoteParticipantsUpdated")
         print("---------------------------\n")
-
-        var callerIdentifier: String?
-
-        if call.callerId is CommunicationUserIdentifier {
-            let callerUserIdentifier = call.callerId as! CommunicationUserIdentifier
-            callerIdentifier = callerUserIdentifier.identifier
-            print("Caller identifier:  \(String(describing: callerIdentifier))")
-        }
 
         if let addedParticipants = args.addedParticipants {
             if addedParticipants.count > 0 {

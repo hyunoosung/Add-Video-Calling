@@ -12,10 +12,57 @@ struct GroupCall: View {
     @EnvironmentObject var callingViewModel: CallingViewModel
 
     var body: some View {
+        ZStack {
             Grid(callingViewModel.remoteVideoStreamModels) { stream in
                 StreamView(remoteVideoStreamModel: stream)
                     .padding()
             }
+
+            VStack(alignment: .center) {
+                Spacer()
+                HStack {
+                    Button(action: { callingViewModel.toggleVideo() }, label: {
+                        HStack {
+                            Spacer()
+                            if callingViewModel.isLocalVideoStreamEnabled {
+                                Image(systemName: "video")
+                                    .padding()
+                            } else {
+                                Image(systemName: "video.slash")
+                                    .padding()
+                            }
+                            Spacer()
+                        }
+                    })
+                    Button(action: { callingViewModel.mute() }, label: {
+                        HStack {
+                            Spacer()
+                            if callingViewModel.isMicrophoneMuted {
+                                Image(systemName: "speaker.slash")
+                                    .padding()
+                            } else {
+                                Image(systemName: "speaker.wave.2")
+                                    .padding()
+                            }
+                            Spacer()
+                        }
+                    })
+                    Button(action: { callingViewModel.endCall() }, label: {
+                        HStack {
+                            Spacer()
+                            Image(systemName: "phone.down")
+                                .padding()
+                            Spacer()
+                        }
+                    })
+                }
+                .font(.largeTitle)
+                .padding(.bottom, 5)
+            }
+            .zIndex(1)
+
+        }
+        .ignoresSafeArea(edges: .all)
     }
 }
 
