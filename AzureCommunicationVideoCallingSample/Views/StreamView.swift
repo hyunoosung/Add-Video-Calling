@@ -14,9 +14,12 @@ struct StreamView: View {
     var body: some View {
         VStack {
             if remoteVideoStreamModel.videoStreamView != nil {
-                remoteVideoStreamModel.videoStreamView
+                remoteVideoStreamModel.videoStreamView!
             }
             TextField("DisplayName", text: $remoteVideoStreamModel.displayName)
+        }
+        .onAppear {
+            remoteVideoStreamModel.checkStream()
         }
     }
 }

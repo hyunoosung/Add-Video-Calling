@@ -582,14 +582,6 @@ extension CallingViewModel: CallDelegate {
         print("onRemoteParticipantsUpdated")
         print("---------------------------\n")
 
-        var callerIdentifier: String?
-
-        if call.callerId is CommunicationUserIdentifier {
-            let callerUserIdentifier = call.callerId as! CommunicationUserIdentifier
-            callerIdentifier = callerUserIdentifier.identifier
-            print("Caller identifier:  \(String(describing: callerIdentifier))")
-        }
-
         if let addedParticipants = args.addedParticipants {
             if addedParticipants.count > 0 {
                 print("addedParticipants: \(String(describing: args.addedParticipants.count))")

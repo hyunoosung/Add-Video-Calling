@@ -15,10 +15,13 @@ class RemoteVideoStreamModel: VideoStreamModel, RemoteParticipantDelegate {
         self.remoteParticipant = remoteParticipant
         super.init(identifier: identifier, displayName: displayName)
         self.remoteParticipant!.delegate = self
+    }
 
-        if let streams = remoteParticipant?.videoStreams {
-            if let stream = streams.first {
-                self.addStream(remoteVideoStream: stream)
+    func checkStream() {
+        if let remoteParticipant = self.remoteParticipant,
+           let videoStreams = remoteParticipant.videoStreams {
+            if videoStreams.count > 0 && videoStreamView == nil {
+                addStream(remoteVideoStream: videoStreams.first!)
             }
         }
     }
