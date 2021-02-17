@@ -49,34 +49,6 @@ struct DirectCall: View {
                 Spacer()
             }
             .zIndex(1)
-
-//            VStack {
-//                Spacer()
-//                HStack {
-//                    Button(action: { }, label: {
-//                        HStack {
-//                            Spacer()
-//                            Text("Camera")
-//                            Spacer()
-//                        }
-//                    })
-//                    Button(action: { callingViewModel.mute() }, label: {
-//                        HStack {
-//                            Spacer()
-//                            Text("Mute")
-//                            Spacer()
-//                        }
-//                    })
-//                    Button(action: { callingViewModel.endCall() }, label: {
-//                        HStack {
-//                            Spacer()
-//                            Text("End Call")
-//                            Spacer()
-//                        }
-//                    })
-//                }
-//            }
-//            .zIndex(2)
         }
     }
 }
