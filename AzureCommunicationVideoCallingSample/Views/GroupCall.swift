@@ -51,6 +51,7 @@ struct GroupCall: View {
                         HStack {
                             Spacer()
                             Image(systemName: "phone.down")
+                                .foregroundColor(.red)
                                 .padding()
                             Spacer()
                         }
