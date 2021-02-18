@@ -12,6 +12,7 @@ class RemoteVideoStreamModel: VideoStreamModel, RemoteParticipantDelegate {
     @Published var isRemoteVideoStreamEnabled:Bool = false
     @Published var isMicrophoneMuted:Bool = false
     @Published var isSpeaking:Bool = false
+    @Published var scalingMode: ScalingMode = .crop
 
     public var remoteParticipant: RemoteParticipant?
 
@@ -49,6 +50,11 @@ class RemoteVideoStreamModel: VideoStreamModel, RemoteParticipantDelegate {
             self.renderer?.dispose()
             self.videoStreamView = nil
         }
+    }
+
+    func toggleScalingMode() {
+        self.scalingMode = self.scalingMode == .crop ? ScalingMode.fit : ScalingMode.crop
+        self.videoStreamView?.view.update(scalingMode: self.scalingMode)
     }
 
     func onParticipantStateChanged(_ remoteParticipant: RemoteParticipant!, args: PropertyChangedEventArgs!) {

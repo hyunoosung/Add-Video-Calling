@@ -18,9 +18,14 @@ struct StreamView: View {
         ZStack {
             if remoteVideoStreamModel.videoStreamView != nil {
                 remoteVideoStreamModel.videoStreamView!
-                    .padding(0)
+            } else {
+                Rectangle()
+                    .foregroundColor(.black)
+                    .edgesIgnoringSafeArea(.all)
+                Text("Initializing video...")
+                    .foregroundColor(.white)
             }
-            VStack(alignment: .center) {
+            VStack {
                 HStack {
                     Spacer()
                     Text(remoteVideoStreamModel.displayName)
@@ -32,9 +37,15 @@ struct StreamView: View {
                         .padding()
                     Spacer()
                 }
+                .padding(.top, 30)
                 Spacer()
             }
         }
+        .onTapGesture(count: 2) {
+            print("double tapped!")
+            remoteVideoStreamModel.toggleScalingMode()
+        }
+        .edgesIgnoringSafeArea(.all)
         .onReceive(remoteVideoStreamModel.$isMicrophoneMuted, perform: { isMicrophoneMuted in
             self.isMicrophoneMuted = isMicrophoneMuted
             print("isMicrophoneMuted: \(isMicrophoneMuted)")

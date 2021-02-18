@@ -11,33 +11,31 @@ struct DirectCall: View {
     @EnvironmentObject var authenticationViewModel: AuthenticationViewModel
     @EnvironmentObject var callingViewModel: CallingViewModel
 
+    private var selectedAnchor: Alignment = .topLeading
+
     var body: some View {
         ZStack {
-            ForEach(callingViewModel.remoteVideoStreamModels, id: \.self) { remoteVideoStreamModel in
-                StreamView(remoteVideoStreamModel: remoteVideoStreamModel)
+            if !callingViewModel.remoteVideoStreamModels.isEmpty {
+                StreamView(remoteVideoStreamModel: callingViewModel.remoteVideoStreamModels.first!)
+            } else {
+                Rectangle()
+                    .edgesIgnoringSafeArea(.all)
             }
-
-            VStack(alignment: .center) {
-                HStack {
-                    ZStack {
-                        if CallingViewModel.shared().localVideoStreamModel != nil {
-                            CallingViewModel.shared().localVideoStreamModel?.videoStreamView
-                            .frame(width: 120, height: 192)
+            VStack {
+                GeometryReader { geometry in
+                    if callingViewModel.localVideoStreamModel != nil {
+                        callingViewModel.localVideoStreamModel?.videoStreamView
                             .cornerRadius(16)
-                            .zIndex(1)
-                        } else {
-                            Rectangle()
-                                .fill(Color.secondary)
-                                .frame(width: 120, height: 192)
-                                .cornerRadius(16)
-                        }
+                            .frame(width: geometry.size.width / 3, height: geometry.size.height / 3)
+                            .padding([.top, .leading], 30)
+                    } else {
+                        Rectangle()
+                            .foregroundColor(/*@START_MENU_TOKEN@*/.blue/*@END_MENU_TOKEN@*/)
+                            .cornerRadius(16)
+                            .frame(width: geometry.size.width / 3, height: geometry.size.height / 3)
+                            .padding([.top, .leading], 30)
                     }
-                    .frame(width: 120, height: 192)
-                    Spacer()
                 }
-                .padding()
-                .padding(.top, 50)
-
                 Spacer()
                 HStack {
                     Button(action: { callingViewModel.toggleVideo() }, label: {
@@ -70,18 +68,15 @@ struct DirectCall: View {
                         HStack {
                             Spacer()
                             Image(systemName: "phone.down")
+                                .foregroundColor(.red)
                                 .padding()
                             Spacer()
                         }
                     })
                 }
-                .font(.largeTitle)
-                .padding(.bottom, 5)
             }
-            .zIndex(1)
-
+            .font(.largeTitle)
         }
-        .ignoresSafeArea(edges: .all)
     }
 }
 
