@@ -26,10 +26,10 @@ struct CallView: View {
 
                 }
             } else if callingViewModel.remoteVideoStreamModels.count == 1 {
-                DirectCall()
+                DirectCallView()
                     .environmentObject(callingViewModel)
             } else {
-                GroupCall()
+                GroupCallView()
                     .environmentObject(callingViewModel)
             }
         }

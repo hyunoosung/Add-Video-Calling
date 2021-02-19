@@ -28,6 +28,7 @@ struct StreamView: View {
             VStack {
                 HStack {
                     Spacer()
+                    Spacer()
                     Text(remoteVideoStreamModel.displayName)
                         .foregroundColor(.secondary)
                         .font(.subheadline)
