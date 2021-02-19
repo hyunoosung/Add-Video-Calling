@@ -33,11 +33,6 @@ struct HomeView: View {
                             Button(action: joinGroup) {
                                 Text("Join Group")
                             }
-//                            .disabled((callingViewModel.call?.state == .incoming ||
-//                                        callingViewModel.call?.state == .connecting ||
-//                                        callingViewModel.call?.state == .ringing ||
-//                                        callingViewModel.call?.state == .connected ||
-//                                        callingViewModel.call?.state == .disconnecting))
                         }
 
                         Section {
@@ -55,16 +50,10 @@ struct HomeView: View {
                             Button(action: startCall) {
                                 Text("Start Call")
                             }
-//                            .disabled((callingViewModel.call?.state == .incoming ||
-//                                        callingViewModel.call?.state == .connecting ||
-//                                        callingViewModel.call?.state == .ringing ||
-//                                        callingViewModel.call?.state == .connected ||
-//                                        callingViewModel.call?.state == .disconnecting))
 
                             Button(action: endCall) {
                                 Text("End Call")
                             }
-//                            .disabled(callingViewModel.call?.state != .ringing && callingViewModel.call?.state != .connecting)
                             Text("Call State: \(callingViewModel.callState.name)")
                         }
                     }
