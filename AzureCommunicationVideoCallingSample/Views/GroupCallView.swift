@@ -1,41 +1,24 @@
 //
-//  DirectCall.swift
+//  GroupCall.swift
 //  AzureCommunicationVideoCallingSample
 //
-//  Created by Hyounwoo Sung on 2021/02/04.
+//  Created by Hyounwoo Sung on 2021/02/06.
 //
 
 import SwiftUI
 
-struct DirectCall: View {
+struct GroupCallView: View {
     @EnvironmentObject var authenticationViewModel: AuthenticationViewModel
     @EnvironmentObject var callingViewModel: CallingViewModel
 
-    private var selectedAnchor: Alignment = .topLeading
-
     var body: some View {
         ZStack {
-            if !callingViewModel.remoteVideoStreamModels.isEmpty {
-                StreamView(remoteVideoStreamModel: callingViewModel.remoteVideoStreamModels.first!)
-            } else {
-                Rectangle()
-                    .edgesIgnoringSafeArea(.all)
+            Grid(callingViewModel.remoteVideoStreamModels) { stream in
+                StreamView(remoteVideoStreamModel: stream)
+                    .padding()
             }
-            VStack {
-                GeometryReader { geometry in
-                    if callingViewModel.localVideoStreamModel != nil {
-                        callingViewModel.localVideoStreamModel?.videoStreamView
-                            .cornerRadius(16)
-                            .frame(width: geometry.size.width / 3, height: geometry.size.height / 3)
-                            .padding([.top, .leading], 30)
-                    } else {
-                        Rectangle()
-                            .foregroundColor(/*@START_MENU_TOKEN@*/.blue/*@END_MENU_TOKEN@*/)
-                            .cornerRadius(16)
-                            .frame(width: geometry.size.width / 3, height: geometry.size.height / 3)
-                            .padding([.top, .leading], 30)
-                    }
-                }
+
+            VStack(alignment: .center) {
                 Spacer()
                 HStack {
                     Button(action: { callingViewModel.toggleVideo() }, label: {
@@ -74,15 +57,19 @@ struct DirectCall: View {
                         }
                     })
                 }
+                .font(.largeTitle)
+                .padding(.bottom, 5)
             }
-            .font(.largeTitle)
+            .zIndex(1)
+
         }
+        .ignoresSafeArea(edges: .all)
     }
 }
 
-struct DirectCall_Previews: PreviewProvider {
+struct GroupCall_Previews: PreviewProvider {
     static var previews: some View {
-        DirectCall()
+        GroupCallView()
             .environmentObject(AuthenticationViewModel())
             .environmentObject(CallingViewModel())
     }
