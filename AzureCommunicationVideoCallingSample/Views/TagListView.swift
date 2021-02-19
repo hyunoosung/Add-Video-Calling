@@ -6,7 +6,7 @@
 //
 import SwiftUI
 
-struct TagsList: View {
+struct TagListView: View {
     var tags: [String]
     var onDelete: (IndexSet) -> Void
 
@@ -24,6 +24,6 @@ struct TagsList: View {
 
 struct TagsList_Previews: PreviewProvider {
     static var previews: some View {
-        TagsList(tags: ["tag1", "tag2"], onDelete: {_ in })
+        TagListView(tags: ["tag1", "tag2"], onDelete: {_ in })
     }
 }

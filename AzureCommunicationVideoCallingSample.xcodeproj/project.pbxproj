@@ -22,14 +22,15 @@
 		799D7EC925C9546600962035 /* CallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799D7EC825C9546600962035 /* CallView.swift */; };
 		799D7ECF25C9EAE100962035 /* VideoStreamView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799D7ECE25C9EAE100962035 /* VideoStreamView.swift */; };
 		799D7ED425C9EB0400962035 /* CallStateExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799D7ED325C9EB0400962035 /* CallStateExtension.swift */; };
-		799D7EF725CBB4D700962035 /* MediaGallery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799D7EF625CBB4D700962035 /* MediaGallery.swift */; };
 		799D7F0225CBBEBF00962035 /* VideoStreamModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799D7F0125CBBEBF00962035 /* VideoStreamModel.swift */; };
 		799D7F0625CBC08400962035 /* LocalVideoStreamModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799D7F0525CBC08400962035 /* LocalVideoStreamModel.swift */; };
 		799D7F0925CBC56A00962035 /* RemoteVideoStreamModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799D7F0825CBC56A00962035 /* RemoteVideoStreamModel.swift */; };
+		799DA33925DFCC2E00A7315E /* Grid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799DA33725DFCC2E00A7315E /* Grid.swift */; };
+		799DA33A25DFCC2E00A7315E /* GridLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799DA33825DFCC2E00A7315E /* GridLayout.swift */; };
 		799F416D25D3F18D00978C1B /* CommunicationUserTokenModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799F416C25D3F18D00978C1B /* CommunicationUserTokenModel.swift */; };
 		79A21F1425CEDA6A002203FD /* StreamView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79A21F1325CEDA6A002203FD /* StreamView.swift */; };
 		79A7887625D0102F007D68C2 /* NotificationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79A7887525D0102F007D68C2 /* NotificationViewModel.swift */; };
-		79A7887E25D038A9007D68C2 /* TagsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79A7887D25D038A9007D68C2 /* TagsView.swift */; };
+		79A7887E25D038A9007D68C2 /* TagListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79A7887D25D038A9007D68C2 /* TagListView.swift */; };
 		79A7888125D038B8007D68C2 /* TagRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79A7888025D038B8007D68C2 /* TagRow.swift */; };
 		79A7888425D03A1A007D68C2 /* ProfileCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79A7888325D03A1A007D68C2 /* ProfileCategory.swift */; };
 		79A7888725D03A56007D68C2 /* CommunicationsSetting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79A7888625D03A56007D68C2 /* CommunicationsSetting.swift */; };
@@ -38,11 +39,11 @@
 		79A788D325D301C9007D68C2 /* CallKitOption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79A788D225D301C9007D68C2 /* CallKitOption.swift */; };
 		79BB891325CDC06000793B44 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79BB891125CDC06000793B44 /* Constants.swift */; };
 		79BB891425CDC06000793B44 /* PListHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79BB891225CDC06000793B44 /* PListHelper.swift */; };
-		79BB891725CDC09A00793B44 /* GroupCall.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79BB891625CDC09A00793B44 /* GroupCall.swift */; };
+		79BB891725CDC09A00793B44 /* GroupCallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79BB891625CDC09A00793B44 /* GroupCallView.swift */; };
 		79BB891C25CDC0DE00793B44 /* SecondUser.plist in Resources */ = {isa = PBXBuildFile; fileRef = 79BB891925CDC0DE00793B44 /* SecondUser.plist */; };
 		79BB891D25CDC0DE00793B44 /* DevSettings.plist in Resources */ = {isa = PBXBuildFile; fileRef = 79BB891A25CDC0DE00793B44 /* DevSettings.plist */; };
 		79BB891E25CDC0DE00793B44 /* FirstUser.plist in Resources */ = {isa = PBXBuildFile; fileRef = 79BB891B25CDC0DE00793B44 /* FirstUser.plist */; };
-		79BC173325CC42FF00AD75CA /* DirectCall.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79BC173225CC42FF00AD75CA /* DirectCall.swift */; };
+		79BC173325CC42FF00AD75CA /* DirectCallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79BC173225CC42FF00AD75CA /* DirectCallView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -63,15 +64,16 @@
 		799D7EC825C9546600962035 /* CallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallView.swift; sourceTree = "<group>"; };
 		799D7ECE25C9EAE100962035 /* VideoStreamView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoStreamView.swift; sourceTree = "<group>"; };
 		799D7ED325C9EB0400962035 /* CallStateExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallStateExtension.swift; sourceTree = "<group>"; };
-		799D7EF625CBB4D700962035 /* MediaGallery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaGallery.swift; sourceTree = "<group>"; };
 		799D7F0125CBBEBF00962035 /* VideoStreamModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoStreamModel.swift; sourceTree = "<group>"; };
 		799D7F0525CBC08400962035 /* LocalVideoStreamModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalVideoStreamModel.swift; sourceTree = "<group>"; };
 		799D7F0825CBC56A00962035 /* RemoteVideoStreamModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteVideoStreamModel.swift; sourceTree = "<group>"; };
+		799DA33725DFCC2E00A7315E /* Grid.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Grid.swift; sourceTree = "<group>"; };
+		799DA33825DFCC2E00A7315E /* GridLayout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GridLayout.swift; sourceTree = "<group>"; };
 		799F416C25D3F18D00978C1B /* CommunicationUserTokenModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunicationUserTokenModel.swift; sourceTree = "<group>"; };
 		79A21F1325CEDA6A002203FD /* StreamView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamView.swift; sourceTree = "<group>"; };
 		79A7884025CFFD48007D68C2 /* AzureCommunicationVideoCallingSample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AzureCommunicationVideoCallingSample.entitlements; sourceTree = "<group>"; };
 		79A7887525D0102F007D68C2 /* NotificationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationViewModel.swift; sourceTree = "<group>"; };
-		79A7887D25D038A9007D68C2 /* TagsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagsView.swift; sourceTree = "<group>"; };
+		79A7887D25D038A9007D68C2 /* TagListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagListView.swift; sourceTree = "<group>"; };
 		79A7888025D038B8007D68C2 /* TagRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagRow.swift; sourceTree = "<group>"; };
 		79A7888325D03A1A007D68C2 /* ProfileCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileCategory.swift; sourceTree = "<group>"; };
 		79A7888625D03A56007D68C2 /* CommunicationsSetting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunicationsSetting.swift; sourceTree = "<group>"; };
@@ -80,11 +82,11 @@
 		79A788D225D301C9007D68C2 /* CallKitOption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallKitOption.swift; sourceTree = "<group>"; };
 		79BB891125CDC06000793B44 /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		79BB891225CDC06000793B44 /* PListHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PListHelper.swift; sourceTree = "<group>"; };
-		79BB891625CDC09A00793B44 /* GroupCall.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GroupCall.swift; sourceTree = "<group>"; };
+		79BB891625CDC09A00793B44 /* GroupCallView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GroupCallView.swift; sourceTree = "<group>"; };
 		79BB891925CDC0DE00793B44 /* SecondUser.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = SecondUser.plist; sourceTree = "<group>"; };
 		79BB891A25CDC0DE00793B44 /* DevSettings.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = DevSettings.plist; sourceTree = "<group>"; };
 		79BB891B25CDC0DE00793B44 /* FirstUser.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = FirstUser.plist; sourceTree = "<group>"; };
-		79BC173225CC42FF00AD75CA /* DirectCall.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectCall.swift; sourceTree = "<group>"; };
+		79BC173225CC42FF00AD75CA /* DirectCallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectCallView.swift; sourceTree = "<group>"; };
 		AEB1966725973BA364DF695E /* Pods-AzureCommunicationVideoCallingSample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AzureCommunicationVideoCallingSample.debug.xcconfig"; path = "Target Support Files/Pods-AzureCommunicationVideoCallingSample/Pods-AzureCommunicationVideoCallingSample.debug.xcconfig"; sourceTree = "<group>"; };
 		B98EB9B8799990E0EE43FC3B /* Pods-AzureCommunicationVideoCallingSample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AzureCommunicationVideoCallingSample.release.xcconfig"; path = "Target Support Files/Pods-AzureCommunicationVideoCallingSample/Pods-AzureCommunicationVideoCallingSample.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -121,16 +123,17 @@
 		7966BE6725C7E87A0028A1F7 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				79BB891625CDC09A00793B44 /* GroupCall.swift */,
+				799DA33725DFCC2E00A7315E /* Grid.swift */,
+				799DA33825DFCC2E00A7315E /* GridLayout.swift */,
+				79BB891625CDC09A00793B44 /* GroupCallView.swift */,
 				7966BE7625C7EA700028A1F7 /* HomeView.swift */,
 				7966BE6325C7E5F50028A1F7 /* SignInView.swift */,
 				7966BE7325C7EA5D0028A1F7 /* ProfileView.swift */,
 				79A7888025D038B8007D68C2 /* TagRow.swift */,
 				799D7EC825C9546600962035 /* CallView.swift */,
-				79BC173225CC42FF00AD75CA /* DirectCall.swift */,
-				799D7EF625CBB4D700962035 /* MediaGallery.swift */,
+				79BC173225CC42FF00AD75CA /* DirectCallView.swift */,
 				79A21F1325CEDA6A002203FD /* StreamView.swift */,
-				79A7887D25D038A9007D68C2 /* TagsView.swift */,
+				79A7887D25D038A9007D68C2 /* TagListView.swift */,
 				79A7888625D03A56007D68C2 /* CommunicationsSetting.swift */,
 				79A7888925D03A62007D68C2 /* NotificationsSetting.swift */,
 				797012A425C7CE7D00551D72 /* ContentView.swift */,
@@ -360,17 +363,16 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				799D7EF725CBB4D700962035 /* MediaGallery.swift in Sources */,
 				79A7888A25D03A62007D68C2 /* NotificationsSetting.swift in Sources */,
 				79A7888425D03A1A007D68C2 /* ProfileCategory.swift in Sources */,
 				79A21F1425CEDA6A002203FD /* StreamView.swift in Sources */,
 				79BB891425CDC06000793B44 /* PListHelper.swift in Sources */,
 				7966BE6A25C7E88F0028A1F7 /* AuthenticationViewModel.swift in Sources */,
 				799F416D25D3F18D00978C1B /* CommunicationUserTokenModel.swift in Sources */,
-				79BB891725CDC09A00793B44 /* GroupCall.swift in Sources */,
+				79BB891725CDC09A00793B44 /* GroupCallView.swift in Sources */,
 				7966BE7725C7EA700028A1F7 /* HomeView.swift in Sources */,
 				799D7F0625CBC08400962035 /* LocalVideoStreamModel.swift in Sources */,
-				79A7887E25D038A9007D68C2 /* TagsView.swift in Sources */,
+				79A7887E25D038A9007D68C2 /* TagListView.swift in Sources */,
 				799D7ECF25C9EAE100962035 /* VideoStreamView.swift in Sources */,
 				7966BE6425C7E5F50028A1F7 /* SignInView.swift in Sources */,
 				7966BE7F25C7EC450028A1F7 /* CallingViewModel.swift in Sources */,
@@ -382,8 +384,10 @@
 				7966BE8D25C8043F0028A1F7 /* SheetType.swift in Sources */,
 				797012A525C7CE7D00551D72 /* ContentView.swift in Sources */,
 				7966BE7025C7E9E90028A1F7 /* Tabs.swift in Sources */,
-				79BC173325CC42FF00AD75CA /* DirectCall.swift in Sources */,
+				79BC173325CC42FF00AD75CA /* DirectCallView.swift in Sources */,
+				799DA33A25DFCC2E00A7315E /* GridLayout.swift in Sources */,
 				7966BE7425C7EA5D0028A1F7 /* ProfileView.swift in Sources */,
+				799DA33925DFCC2E00A7315E /* Grid.swift in Sources */,
 				799D7EC925C9546600962035 /* CallView.swift in Sources */,
 				79A788D325D301C9007D68C2 /* CallKitOption.swift in Sources */,
 				799D7F0225CBBEBF00962035 /* VideoStreamModel.swift in Sources */,

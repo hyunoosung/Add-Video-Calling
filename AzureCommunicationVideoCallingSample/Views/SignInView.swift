@@ -52,7 +52,7 @@ struct SignInView: View {
                         .padding(.top, 8)
                     }
 
-                    Button(action: { self.signInWithTotken() }, label: {
+                    Button(action: { self.signInWithTokken() }, label: {
                         HStack {
                             Spacer()
                             Text("Sign in with token")
@@ -73,7 +73,6 @@ struct SignInView: View {
         }
         .onReceive(callingViewModel.$hasCallAgent, perform: { hasCallAgent in
             if hasCallAgent {
-                notificationViewModel.connectToHub()
                 presentationMode.wrappedValue.dismiss()
             }
         })
@@ -85,12 +84,16 @@ struct SignInView: View {
         print("Initialize CommunicationTokenCredential with retrieved token from the auth server.")
     }
 
-    func signInWithTotken() {
+    func signInWithTokken() {
         print("Sign in with token")
         if let communicationUserTokenModel = authenticationViewModel.getCommunicationUserToken() {
             callingViewModel.initCallAgent(communicationUserTokenModel: communicationUserTokenModel, displayName: authenticationViewModel.displayName) { success in
-                print("successfully signed in.\n")
-//                callingViewModel.registerVoIP()
+                if success {
+                    notificationViewModel.connectToHub()
+                    print("successfully signed in.\n")
+                } else {
+                    print("callAgent not intialized.\n")
+                }
             }
         }
     }

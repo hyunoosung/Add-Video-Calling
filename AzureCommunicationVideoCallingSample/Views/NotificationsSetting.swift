@@ -53,7 +53,7 @@ struct NotificationsSetting: View {
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .padding([.leading, .bottom, .trailing])
 
-            TagsList(tags: notificationViewModel.tags, onDelete: {
+            TagListView(tags: notificationViewModel.tags, onDelete: {
                 $0.forEach({
                     MSNotificationHub.removeTag(notificationViewModel.tags.remove(at: $0));
                 })
