@@ -77,12 +77,10 @@ class NotificationViewModel: NSObject, ObservableObject, UNUserNotificationCente
             self.installationId = installation.installationId
             self.pushChannel = installation.pushChannel
             print("notificationHub installation was successful.")
-            CallingViewModel.shared().initPushNotification()
         }
     }
 
     func notificationHub(_ notificationHub: MSNotificationHub!, didFailToSave installation: MSInstallation!, withError error: Error!) {
-        CallingViewModel.shared().unRegisterVoIP()
         print("notificationHub installation failed.")
     }
 

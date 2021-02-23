@@ -51,7 +51,7 @@ struct DirectCallView: View {
                             Spacer()
                         }
                     })
-                    Button(action: { callingViewModel.mute() }, label: {
+                    Button(action: { callingViewModel.setMutedCall() }, label: {
                         HStack {
                             Spacer()
                             if callingViewModel.isMicrophoneMuted {

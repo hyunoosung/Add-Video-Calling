@@ -12,14 +12,13 @@ import AVFoundation
 import AzureCommunicationCalling
 
 class CallingViewModel: NSObject, ObservableObject {
-    private static var sharedInstance: CallingViewModel?
-    private(set) var callClient: CallClient?
-    private(set) var callAgent: CallAgent?
-    private(set) var call: Call?
-    private(set) var deviceManager: DeviceManager?
-    private(set) var localVideoStream: LocalVideoStream?
-    private var pushRegistry: PKPushRegistry
-    private var voIPToken: Data?
+    static let shared: CallingViewModel = CallingViewModel()
+    private var callClient: CallClient = CallClient()
+    private var callAgent: CallAgent?
+    private var call: Call?
+    private var deviceManager: DeviceManager?
+    private var localVideoStream: LocalVideoStream?
+    private var voipToken: Data?
 
     @Published var hasCallAgent: Bool = false
     @Published var callState: CallState = CallState.none
@@ -31,22 +30,21 @@ class CallingViewModel: NSObject, ObservableObject {
     @Published var callee: String = Constants.callee
     @Published var groupId: String = "29228d3e-040e-4656-a70e-890ab4e173e5"
 
-    static func shared() -> CallingViewModel {
-        if sharedInstance == nil {
-            sharedInstance = CallingViewModel()
-
-            // This is to initialize CallKit properly before requesting first outgoing/incoming call
-            _ = CallKitManager.shared()
+    override init() {
+        super.init()
+        ProviderDelegate.shared.acceptCall = { callId in
+            print("callId: \(callId)")
         }
-        return sharedInstance!
     }
 
-    override init() {
-        callClient = CallClient()
-        pushRegistry = PKPushRegistry(queue: DispatchQueue.main)
-        super.init()
-        pushRegistry.delegate = self
-        pushRegistry.desiredPushTypes = [PKPushType.voIP]
+    // MARK: - Initialize CallingViewModel.
+
+    var hasIncomingCall: ((Bool) -> Void)?
+
+    func setVoipToken(token: Data?) {
+        if let token = token {
+            voipToken = token
+        }
     }
 
     func initCallAgent(communicationUserTokenModel: CommunicationUserTokenModel, displayName: String?, completion: @escaping (Bool) -> Void) {
@@ -56,15 +54,31 @@ class CallingViewModel: NSObject, ObservableObject {
                 let communicationTokenCredential = try CommunicationTokenCredential(token: token)
                 let callAgentOptions = CallAgentOptions()
                 callAgentOptions?.displayName = displayName ?? communicationUserId
-                self.callClient?.createCallAgent(userCredential: communicationTokenCredential, options: callAgentOptions) { (callAgent, error) in
+                self.callClient.createCallAgent(userCredential: communicationTokenCredential, options: callAgentOptions) { (callAgent, error) in
+                    print("CallAgent successfully created.\n")
                     if self.callAgent != nil {
+                        print("\nsomething went wrhong with lifecycle.\n")
                         self.callAgent?.delegate = nil
                     }
                     self.callAgent = callAgent
                     self.callAgent?.delegate = self
                     self.hasCallAgent = true
+                    
+                    if let token = self.voipToken {
+                        self.registerPushNotifications(voipToken: token)
+                    }
 
-                    print("CallAgent successfully created.\n")
+                    ProviderDelegate.shared.acceptCall = { callId in
+                        self.acceptCall(callId: callId)
+                    }
+
+                    ProviderDelegate.shared.endCall = { callId in
+                        self.endCall(callId: callId)
+                    }
+
+                    ProviderDelegate.shared.muteCall = { callId in
+                        self.muteCall(callId: callId)
+                    }
                     completion(true)
                 }
             } catch {
@@ -76,8 +90,8 @@ class CallingViewModel: NSObject, ObservableObject {
         }
     }
 
-    func initPushNotification() {
-        self.callAgent?.registerPushNotifications(deviceToken: self.voIPToken, completionHandler: { (error) in
+    func registerPushNotifications(voipToken: Data) {
+        self.callAgent?.registerPushNotifications(deviceToken: voipToken, completionHandler: { (error) in
             if(error == nil) {
                 print("Successfully registered to VoIP push notification.\n")
             } else {
@@ -86,29 +100,58 @@ class CallingViewModel: NSObject, ObservableObject {
         })
     }
 
-    func getCall(callId: UUID) -> Call? {
-        if let call = self.call {
-            print("incoming callId: \(call.callId.uppercased())")
-            print("push callId: \(callId)")
+    func unRegisterPushNotifications() {
+        self.callAgent?.unRegisterPushNotifications(completionHandler: { (error) in
+            if (error != nil) {
+                print("Register of push notification failed, please try again.\n")
+            } else {
+                print("Unregister of push notification was successful.\n")
+            }
+        })
+    }
 
-            if let currentCallId = UUID(uuidString: call.callId) {
-                if currentCallId == callId {
-                    return call
+    func handlePushNotification(incomingCallPushNotification: IncomingCallPushNotification) {
+        if let callAgent = self.callAgent {
+            print("CallAgent found.\n")
+            callAgent.handlePush(notification: incomingCallPushNotification, completionHandler: { error in
+                if let error = error {
+                    print("Handle push notification failed: \(error.localizedDescription)\n")
                 } else {
-                    return nil
+                    print("Handle push notification succeeded.\n")
+                }
+            })
+        } else {
+            print("CallAgent not found.\nConnecting to Communication Services...\n")
+            let token = Constants.token
+            let identifier = Constants.identifier
+            let displayName = Constants.displayName
+
+            if !token.isEmpty && !identifier.isEmpty {
+                let communicationUserToken = CommunicationUserTokenModel(token: token, expiresOn: nil, communicationUserId: identifier)
+                self.initCallAgent(communicationUserTokenModel: communicationUserToken, displayName: displayName) { (success) in
+                    if success {
+                        self.callAgent?.handlePush(notification: incomingCallPushNotification, completionHandler: { error in
+                            if let error = error {
+                                print("Handle push notification failed: \(error.localizedDescription)\n")
+                            } else {
+                                print("Handle push notification succeeded.\n")
+                            }
+                        })
+                    } else {
+                        print("initCallAgent failed.\n")
+                    }
                 }
             } else {
-                print("Error parsing callId from currentCall.\n")
+                // MARK: no token found, unregister push notification when signing out.
+                print("No token found,\n")
             }
-        } else {
-            print("call not exist in CallingViewModel!!!.\n")
+
         }
-        return nil
     }
 
     func resetCallAgent() {
         if let callAgent = self.callAgent {
-            unRegisterVoIP()
+            unRegisterPushNotifications()
             callAgent.delegate = nil
             self.callAgent = nil
         } else {
@@ -117,10 +160,57 @@ class CallingViewModel: NSObject, ObservableObject {
         self.hasCallAgent = false
     }
 
+    // MARK: - Permission management.
+
+    func requestRecordPermission(completion: @escaping (Bool) -> Void) {
+        let audioSession = AVAudioSession.sharedInstance()
+        switch audioSession.recordPermission {
+        case .undetermined:
+            audioSession.requestRecordPermission { granted in
+                if granted {
+                    completion(true)
+                } else {
+                    print("User did not grant audio permission")
+                    completion(false)
+                }
+            }
+        case .denied:
+            print("User did not grant audio permission, it should redirect to Settings")
+            completion(false)
+        case .granted:
+            completion(true)
+        @unknown default:
+            print("Audio session record permission unknown case detected")
+            completion(false)
+        }
+    }
+
+    func requestVideoPermission(completion: @escaping (Bool) -> Void) {
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: .video) { authorized in
+                if authorized {
+                    completion(true)
+                } else {
+                    print("User did not grant video permission")
+                    completion(false)
+                }
+            }
+        case .restricted, .denied:
+            print("User did not grant video permission, it should redirect to Settings")
+            completion(false)
+        case .authorized:
+            completion(true)
+        @unknown default:
+            print("AVCaptureDevice authorizationStatus unknown case detected")
+            completion(false)
+        }
+    }
+
     func getDeviceManager(completion: @escaping (Bool) -> Void) {
         requestVideoPermission { success in
             if success {
-                self.callClient?.getDeviceManager(completionHandler: { (deviceManager, error) in
+                self.callClient.getDeviceManager(completionHandler: { (deviceManager, error) in
                     if (error == nil) {
                         print("Got device manager instance")
                         self.deviceManager = deviceManager
@@ -146,114 +236,26 @@ class CallingViewModel: NSObject, ObservableObject {
         }
     }
 
-    // MARK: Request RecordPermission
-    func requestRecordPermission(completion: @escaping (Bool) -> Void) {
-        let audioSession = AVAudioSession.sharedInstance()
-        switch audioSession.recordPermission {
-        case .undetermined:
-            audioSession.requestRecordPermission { granted in
-                if granted {
-                    completion(true)
-                } else {
-                    print("User did not grant audio permission")
-                    completion(false)
-                }
-            }
-        case .denied:
-            print("User did not grant audio permission, it should redirect to Settings")
-            completion(false)
-        case .granted:
-            completion(true)
-        @unknown default:
-            print("Audio session record permission unknown case detected")
-            completion(false)
+    // MARK: - Call management.
+
+    func getCurrentCallUUID() -> UUID? {
+        if let call = self.call,
+           let callId = UUID(uuidString: call.callId) {
+            return callId
+        } else {
+            return nil
         }
     }
 
-    // MARK: Request VideoPermission
-    func requestVideoPermission(completion: @escaping (Bool) -> Void) {
-        switch AVCaptureDevice.authorizationStatus(for: .video) {
-        case .notDetermined:
-            AVCaptureDevice.requestAccess(for: .video) { authorized in
-                if authorized {
-                    completion(true)
-                } else {
-                    print("User did not grant video permission")
-                    completion(false)
-                }
-            }
-        case .restricted, .denied:
-            print("User did not grant video permission, it should redirect to Settings")
-            completion(false)
-        case .authorized:
-            completion(true)
-        @unknown default:
-            print("AVCaptureDevice authorizationStatus unknown case detected")
-            completion(false)
-        }
-    }
-
-    // MARK: Configure AudioSession
-    func configureAudioSession() {
-        let audioSession = AVAudioSession.sharedInstance()
-        do {
-            if audioSession.category != .playAndRecord {
-                try audioSession.setCategory(AVAudioSession.Category.playAndRecord,
-                                             options: AVAudioSession.CategoryOptions.allowBluetooth)
-                try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
-            }
-            if audioSession.mode != .voiceChat {
-                try audioSession.setMode(.voiceChat)
-            }
-        } catch {
-            print("Error configuring AVAudioSession: \(error.localizedDescription)")
-        }
-    }
-
-    func startVideo(call: Call, localVideoStream: LocalVideoStream) -> Void {
-        requestVideoPermission { success in
-            if success {
-                if let localVideoStreamModel = self.localVideoStreamModel {
-                    call.startVideo(stream: localVideoStream) { error in
-                        if error != nil {
-                            print("LocalVideo failed to start.\n")
-                        } else {
-                            print("LocalVideo started successfully.\n")
-                            localVideoStreamModel.createView(localVideoStream: localVideoStream)
-                            self.isLocalVideoStreamEnabled = true
-                        }
-                    }
-                }
-            } else {
-                print("Permission denied.\n")
-            }
-        }
-    }
-
-    func stopVideo(competion: @escaping (Bool) -> Void) {
+    func getCall(callId: UUID) -> Call? {
         if let call = self.call {
-            call.stopVideo(stream: self.localVideoStream) { error in
-                if error != nil {
-                    print("LocalVideo failed to stop.\n")
-                    competion(false)
-                } else {
-                    print("LocalVideo stopped successfully.\n")
-                    if self.localVideoStreamModel != nil {
-                        self.isLocalVideoStreamEnabled = false
-                    }
-                    competion(true)
-                }
+            if (call.callId == callId.uuidString.lowercased()) {
+                return call
+            } else {
+                return nil
             }
-        }
-    }
-
-    func stopVideo() {
-        self.stopVideo { success in
-            if success {
-                self.localVideoStreamModel?.renderer?.dispose()
-                self.localVideoStreamModel?.renderer = nil
-                self.localVideoStreamModel?.videoStreamView = nil
-            }
+        } else {
+            return nil
         }
     }
 
@@ -265,26 +267,37 @@ class CallingViewModel: NSObject, ObservableObject {
             }
 
             if let callAgent = self.callAgent {
-                let groupCallLocator = GroupCallLocator(groupId: UUID(uuidString: self.groupId))
+                let groupId = UUID(uuidString: self.groupId)!
+                let groupCallLocator = GroupCallLocator(groupId: groupId)
                 let joinCallOptions = JoinCallOptions()
 
                 self.getDeviceManager { _ in
                     if let localVideoStream = self.localVideoStream {
                         let videoOptions = VideoOptions(localVideoStream: localVideoStream)
-                        
                         joinCallOptions?.videoOptions = videoOptions
 
                         self.call = callAgent.join(with: groupCallLocator, joinCallOptions: joinCallOptions)
-
                         self.call?.delegate = self
                         self.startVideo(call: self.call!, localVideoStream: localVideoStream)
-                        CallKitManager.shared().startOutgoingCall(call: self.call!, callerDisplayName: Constants.displayName)
-                        print("outgoing call started.")
+
+                        CallController.shared.startCall(callId: groupId, handle: self.groupId, isVideo: true) { error in
+                            if let error = error {
+                                print("Outgoing call failed: \(error.localizedDescription)")
+                            } else {
+                                print("outgoing call started.")
+                            }
+                        }
                     } else {
-                        self.call = self.callAgent?.join(with: groupCallLocator, joinCallOptions: joinCallOptions)
-                        CallKitManager.shared().startOutgoingCall(call: self.call!, callerDisplayName: Constants.displayName)
+                        self.call = callAgent.join(with: groupCallLocator, joinCallOptions: joinCallOptions)
                         self.call?.delegate = self
-                        print("outgoing call started.")
+
+                        CallController.shared.startCall(callId: groupId, handle: self.groupId, isVideo: false) { error in
+                            if let error = error {
+                                print("Outgoing call failed: \(error.localizedDescription)")
+                            } else {
+                                print("outgoing call started.")
+                            }
+                        }
                     }
                 }
             } else {
@@ -312,12 +325,25 @@ class CallingViewModel: NSObject, ObservableObject {
                         self.call = callAgent.call(participants: callees, options: startCallOptions)
                         self.call?.delegate = self
                         self.startVideo(call: self.call!, localVideoStream: localVideoStream)
-                        CallKitManager.shared().startOutgoingCall(call: self.call!, callerDisplayName: Constants.displayName)
-                        print("outgoing call started.")
+                        let callId = UUID(uuidString: (self.call?.callId)!)
+                        CallController.shared.startCall(callId: callId!, handle: Constants.displayName, isVideo: true) { error in
+                            if let error = error {
+                                print("Outgoing call failed: \(error.localizedDescription)")
+                            } else {
+                                print("outgoing call started.")
+                            }
+                        }
                     } else {
                         self.call = callAgent.call(participants: callees, options: startCallOptions)
-                        CallKitManager.shared().startOutgoingCall(call: self.call!, callerDisplayName: Constants.displayName)
                         self.call?.delegate = self
+                        let callId = UUID(uuidString: (self.call?.callId)!)
+                        CallController.shared.startCall(callId: callId!, handle: Constants.displayName, isVideo: true) { error in
+                            if let error = error {
+                                print("Outgoing call failed: \(error.localizedDescription)")
+                            } else {
+                                print("outgoing call started.")
+                            }
+                        }
                         print("outgoing call started.")
                     }
                 }
@@ -327,102 +353,52 @@ class CallingViewModel: NSObject, ObservableObject {
         }
     }
 
-    // Accept incoming call
-    func acceptCall(callId: UUID, completion: @escaping (Bool) -> Void) {
-        if self.incomingCallPushNotification == nil {
-            self.requestRecordPermission { authorized in
-                if authorized {
-                    if let call = self.getCall(callId: callId) {
-                        let acceptCallOptions = AcceptCallOptions()
+    func endCall() {
+        if let callUUID = getCurrentCallUUID() {
+            CallController.shared.endCall(callId: callUUID) { error in
+                if let error = error {
+                    print("EndCall request failed: \(error.localizedDescription)\n")
+                } else {
+                    print("EndCall request succeeded.\n")
+                }
+            }
+        }
+    }
 
-                        self.getDeviceManager { _ in
-                            if let localVideoStream = self.localVideoStream {
-                                let videoOptions = VideoOptions(localVideoStream: localVideoStream)
-                                acceptCallOptions?.videoOptions = videoOptions
-                                // MARK: startVideo when connection has made
-                                self.startVideo(call: call, localVideoStream: localVideoStream)
-                            }
-
-                            call.accept(options: acceptCallOptions) { error in
-                                if let error = error {
-                                    print("Failed to accpet incoming call: \(error.localizedDescription)\n")
-                                    completion(false)
-                                } else {
-                                    print("Incoming call accepted with acceptCallOptions.\n")
-                                    completion(true)
-                                }
-                            }
+    func startVideo(call: Call, localVideoStream: LocalVideoStream) -> Void {
+        requestVideoPermission { success in
+            if success {
+                if let localVideoStreamModel = self.localVideoStreamModel {
+                    call.startVideo(stream: localVideoStream) { error in
+                        if error != nil {
+                            print("LocalVideo failed to start.\n")
+                        } else {
+                            print("LocalVideo started successfully.\n")
+                            localVideoStreamModel.createView(localVideoStream: localVideoStream)
+                            self.isLocalVideoStreamEnabled = true
                         }
-                    } else {
-                        print("Call not found when trying to accept.\n")
-                        completion(false)
                     }
-                } else {
-                    print("recordPermission not authorized.")
                 }
-            }
-        } else {
-            print("incomingCallPushNotification not processed yet")
-            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 2) {
-                self.incomingCallPushNotification = nil
-                self.acceptCall(callId: callId) { _ in }
-            }
-        }
-    }
-
-    func endCall() -> Void {
-        print("endCall requested from App.\n")
-        if let call = self.call {
-            call.hangup(options: HangupOptions()) { error in
-                if let error = error {
-                    print("hangup failed: \(error.localizedDescription).\n")
-                } else {
-                    print("hangup succeed.\n")
-                }
-            }
-        } else {
-            print("Call not found.\n")
-        }
-    }
-
-    func endCall(callId: UUID, completion: @escaping (Bool) -> Void) {
-        print("endCall requested from CallKit.\n")
-        if let call = self.getCall(callId: callId) {
-            call.hangup(options: HangupOptions()) { error in
-                if let error = error {
-                    print("hangup failed: \(error.localizedDescription).\n")
-                    completion(false)
-                } else {
-                    print("hangup succeed.\n")
-                    completion(true)
-                }
-            }
-        } else {
-            print("Call not found when trying to hangup.\n")
-            completion(false)
-        }
-    }
-
-    func mute() {
-        if let call = self.call {
-            if call.isMicrophoneMuted {
-                call.unmute(completionHandler:{ (error) in
-                    if error == nil {
-                        print("Successfully un-muted")
-                        self.isMicrophoneMuted = false
-                    } else {
-                        print("Failed to unmute")
-                    }
-                })
             } else {
-                call.mute(completionHandler: { (error) in
-                    if error == nil {
-                        print("Successfully muted")
-                        self.isMicrophoneMuted = true
-                    } else {
-                        print("Failed to mute")
+                print("Permission denied.\n")
+            }
+        }
+    }
+
+    func stopVideo() {
+        if let call = self.call {
+            call.stopVideo(stream: self.localVideoStream) { error in
+                if let error = error {
+                    print("LocalVideo failed to stop: \(error.localizedDescription)\n")
+                } else {
+                    print("LocalVideo stopped successfully.\n")
+                    if let localVideoStreamModel = self.localVideoStreamModel {
+                        self.isLocalVideoStreamEnabled = false
+                        localVideoStreamModel.renderer?.dispose()
+                        localVideoStreamModel.renderer = nil
+                        localVideoStreamModel.videoStreamView = nil
                     }
-                })
+                }
             }
         }
     }
@@ -437,94 +413,102 @@ class CallingViewModel: NSObject, ObservableObject {
             }
         }
     }
-}
 
-extension CallingViewModel: PKPushRegistryDelegate {
-    func unRegisterVoIP() {
-        self.callAgent?.unRegisterPushNotifications(completionHandler: { (error) in
-            if (error != nil) {
-                print("Register of push notification failed, please try again.\n")
-            } else {
-                print("Unregister of push notification was successful.\n")
-            }
-        })
-    }
-
-    func pushRegistry(_ registry: PKPushRegistry, didUpdate pushCredentials: PKPushCredentials, for type: PKPushType) {
-        let deviceToken = pushCredentials.token.map { String(format: "%02x", $0) }.joined()
-                print("pushRegistry -> deviceToken :\(deviceToken)")
-
-        self.voIPToken = pushCredentials.token
-    }
-
-    func pushRegistry(_ registry: PKPushRegistry, didInvalidatePushTokenFor type: PKPushType) {
-        print("pusRegistry invalidated.")
-    }
-
-    func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
-        let dictionaryPayload = payload.dictionaryPayload
-        print("dictionaryPayload: \(dictionaryPayload)")
-
-//        let update = CXCallUpdate()
-//        update.remoteHandle = CXHandle(type: .emailAddress, value: "test@email.com")
-
-//        CallKitManager.shared().testReport { success in
-//            completion()
-//        }
-
-
-        if type == .voIP {
-            if let incomingCallPushNotification = IncomingCallPushNotification.fromDictionary(payload.dictionaryPayload) {
-                self.configureAudioSession()
-                CallKitManager.shared().reportNewIncomingCall(incomingCallPushNotification: incomingCallPushNotification) { success in
-                    if success {
-                        print("Handling of report incoming call was succesful.\n")
-                        completion()
-                    } else {
-                        print("Handling of report incoming call failed.\n")
-                        completion()
-                    }
+    func setMutedCall() {
+        if let callUUID = getCurrentCallUUID() {
+            CallController.shared.setMutedCall(callId: callUUID, muted: !isMicrophoneMuted) { error in
+                if let error = error {
+                    print("Failed to setMutedCall: \(error.localizedDescription)\n")
+                } else {
+                    print("setMutedCall \(!self.isMicrophoneMuted) successfully.\n")
                 }
+            }
+        }
+    }
 
-                if self.callAgent == nil {
-                    self.incomingCallPushNotification = incomingCallPushNotification
+    // MARK: - Callback methods.
 
-                    print("CallAgent not found.\nConnecting to Communication Services...\n")
-                    // MARK: generate communicationUserToken from stored data.
-                    let token = Constants.token
-                    let identifier = Constants.identifier
-                    let displayName = Constants.displayName
+    private func acceptCall(callId: UUID) {
+        print("AcceptCall requested from CallKit.\n")
+        if let _ = self.callAgent,
+           let call = self.getCall(callId: callId) {
+            self.requestRecordPermission { authorized in
+                if authorized {
+                    let acceptCallOptions = AcceptCallOptions()
+                    self.getDeviceManager { _ in
+                        if let localVideoStream = self.localVideoStream {
+                            let videoOptions = VideoOptions(localVideoStream: localVideoStream)
+                            acceptCallOptions?.videoOptions = videoOptions
+                            self.startVideo(call: call, localVideoStream: localVideoStream)
+                        }
 
-                    if !token.isEmpty && !identifier.isEmpty {
-                        let communicationUserToken = CommunicationUserTokenModel(token: token, expiresOn: nil, communicationUserId: identifier)
-                        self.initCallAgent(communicationUserTokenModel: communicationUserToken, displayName: displayName) { (success) in
-                            if success {
-                                self.initPushNotification()
-
-                                self.callAgent?.handlePush(notification: incomingCallPushNotification, completionHandler: { error in
-                                    if (error != nil) {
-                                        print("Handling of push notification to call failed: \(error.debugDescription)\n")
-                                    } else {
-                                        print("Handling of push notification to call was successful.\n")
-                                        self.incomingCallPushNotification = nil
-                                    }
-                                })
+                        call.accept(options: acceptCallOptions) { error in
+                            if let error = error {
+                                print("Failed to accpet incoming call: \(error.localizedDescription)\n")
                             } else {
-                                print("initCallAgent failed.\n")
+                                print("Incoming call accepted with acceptCallOptions.\n")
                             }
                         }
-                    } else {
-                        // MARK: no token found, unregister push notification when signing out.
-                        print("No token found,\n")
                     }
+                } else {
+                    print("recordPermission not authorized.")
                 }
             }
         } else {
-            print("Pushnotification is not type of voIP.\n")
+            print("Call not found when trying to accept.\n")
+            self.hasIncomingCall = { hasIncomingCall in
+                if hasIncomingCall == true {
+                    self.acceptCall(callId: callId)
+                    self.hasIncomingCall?(false)
+                }
+            }
+        }
+    }
+
+    private func endCall(callId: UUID) {
+        print("EndCall requested from CallKit.\n")
+        if let call = self.getCall(callId: callId) {
+            call.hangup(options: HangupOptions()) { error in
+                if let error = error {
+                    print("Hangup failed: \(error.localizedDescription).\n")
+                } else {
+                    print("Hangup succeeded.\n")
+                }
+            }
+        } else {
+            print("Call not found when trying to hangup.\n")
+        }
+    }
+
+    private func muteCall(callId: UUID) {
+        print("MuteCall requested from CallKit.\n")
+        if let call = self.getCall(callId: callId) {
+            if call.isMicrophoneMuted {
+                call.unmute(completionHandler:{ (error) in
+                    if let error = error {
+                        print("Failed to unmute: \(error.localizedDescription)")
+                    } else {
+                        print("Successfully un-muted")
+                        self.isMicrophoneMuted = false
+                    }
+                })
+            } else {
+                call.mute(completionHandler: { (error) in
+                    if let error = error {
+                        print("Failed to mute: \(error.localizedDescription)")
+                    } else {
+                        print("Successfully muted")
+                        self.isMicrophoneMuted = true
+                    }
+                })
+            }
+        } else {
+            print("Call not found when trying to set mute.\n")
         }
     }
 }
 
+// MARK: - InternalTokenProviderDelegate
 extension CallingViewModel: InternalTokenProviderDelegate {
     func onTokenRequested(_ internalTokenProvider: InternalTokenProvider!, sender: InternalTokenProvider!) {
         print("\n----------------")
@@ -533,6 +517,7 @@ extension CallingViewModel: InternalTokenProviderDelegate {
     }
 }
 
+// MARK: - CallAgentDelegate
 extension CallingViewModel: CallAgentDelegate {
     func onCallsUpdated(_ callAgent: CallAgent!, args: CallsUpdatedEventArgs!) {
         print("\n---------------")
@@ -545,33 +530,30 @@ extension CallingViewModel: CallAgentDelegate {
             self.call?.delegate = self
             self.callState = addedCall.state
             self.isMicrophoneMuted = addedCall.isMicrophoneMuted
+            self.hasIncomingCall?(true)
         }
 
-        if let removedCall = args.removedCalls?.first {
+        if let removedCalls = args.removedCalls {
             print("removedCalls: \(args.removedCalls.count)\n")
-            let removedCallUUID = UUID(uuidString: removedCall.callId)
-            // MARK: report CallKitManager for endCall.
-            CallKitManager.shared().reportCallEndedFromRemote(callId: removedCallUUID!, reason: CXCallEndedReason.remoteEnded)
+            if let call = self.call,
+               let removedCall = removedCalls.first(where: {$0.callId == call.callId}),
+               let removedCallUUID = UUID(uuidString: removedCall.callId) {
+                self.callState = removedCall.state
+                self.call?.delegate = nil
+                self.call = nil
 
-            if let call = self.call {
-                print("call removed.\n")
-                if call.callId == removedCall.callId {
-                    self.callState = removedCall.state
-                    self.call?.delegate = nil
-                    self.call = nil
-                }
+                ProviderDelegate.shared.reportCallEnded(callId: removedCallUUID, reason: CXCallEndedReason.remoteEnded)
             } else {
-                print("\ncall removed before initizliaztion.\n")
-            }
-        } else {
-            print("removedCall: \(String(describing: args.removedCalls))")
-            if let incomingCallPushNotification = self.incomingCallPushNotification {
-                CallKitManager.shared().reportCallEndedFromRemote(callId: incomingCallPushNotification.callId, reason: CXCallEndedReason.remoteEnded)
+                print("removedCall: \(String(describing: args.removedCalls))")
+                if let incomingCallPushNotification = self.incomingCallPushNotification {
+                    ProviderDelegate.shared.reportCallEnded(callId: incomingCallPushNotification.callId, reason: CXCallEndedReason.remoteEnded)
+                }
             }
         }
     }
 }
 
+// MARK: - CallDelegate
 extension CallingViewModel: CallDelegate {
     func onCallStateChanged(_ call: Call!, args: PropertyChangedEventArgs!) {
         print("\n----------------------------------")
@@ -579,7 +561,15 @@ extension CallingViewModel: CallDelegate {
         print("----------------------------------\n")
         self.callState = call.state
 
-        if call.state == .connected {
+        if call.state == .connected && !call.isIncoming {
+            if let callUUID = UUID(uuidString: call.callId) {
+                ProviderDelegate.shared.startedConnectingAt(callId: callUUID)
+            }
+        }
+        if call.state == .connected && !call.isIncoming {
+            if let callUUID = UUID(uuidString: call.callId) {
+                ProviderDelegate.shared.connectedAt(callId: callUUID)
+            }
 //            if let localVideoStream = self.localVideoStream {
 //                self.startVideo(call: call, localVideoStream: localVideoStream)
 //            }
@@ -657,7 +647,7 @@ extension CallingViewModel: CallDelegate {
     }
 }
 
-
+// MARK: - DeviceManagerDelegate
 extension CallingViewModel: DeviceManagerDelegate {
     func onAudioDevicesUpdated(_ deviceManager: DeviceManager!, args: AudioDevicesUpdatedEventArgs!) {
         print("\n---------------------")
