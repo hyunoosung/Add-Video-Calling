@@ -12,9 +12,10 @@ struct AzureCommunicationVideoCallingSampleApp: App {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var authenticationViewModel = AuthenticationViewModel()
     @StateObject private var notificationViewModel = NotificationViewModel()
-    @StateObject private var callingViewModel = CallingViewModel.shared()
+    @StateObject private var callingViewModel = CallingViewModel.shared
 
     init() {
+        _ = PushRegistryDelegate.shared
         // Fill in DevSettings.plist for AzureNotificationHubs hubName and connectionString.
         Constants.hubName = getPlistInfo(resourceName: "DevSettings", key: "HUB_NAME")
         Constants.connectionString = getPlistInfo(resourceName: "DevSettings", key: "CONNECTION_STRING")
