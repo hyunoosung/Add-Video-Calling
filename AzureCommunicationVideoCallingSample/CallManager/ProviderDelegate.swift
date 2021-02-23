@@ -39,6 +39,7 @@ class ProviderDelegate: NSObject {
             if audioSession.mode != .voiceChat {
                 try audioSession.setMode(.voiceChat)
             }
+            try audioSession.overrideOutputAudioPort(AVAudioSession.PortOverride.speaker)
         } catch {
             print("Error configuring AVAudioSession: \(error.localizedDescription)")
         }

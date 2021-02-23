@@ -160,7 +160,7 @@ class CallingViewModel: NSObject, ObservableObject {
         self.hasCallAgent = false
     }
 
-    // MARK: - Permission management.
+    // MARK: - Device management.
 
     func requestRecordPermission(completion: @escaping (Bool) -> Void) {
         let audioSession = AVAudioSession.sharedInstance()
@@ -232,6 +232,40 @@ class CallingViewModel: NSObject, ObservableObject {
             } else {
                 print("Permission denied.\n")
                 completion(false)
+            }
+        }
+    }
+
+    func toggleCamera() {
+        if let camera = self.deviceManager?.getCameraList(),
+           let localVideoStreamSource = self.localVideoStream?.source {
+            if camera.count > 1 {
+                if localVideoStreamSource.cameraFacing == .front {
+                    print("front")
+                    self.stopVideo() { success in
+                        if success {
+                            // set second camera
+                            self.localVideoStream = LocalVideoStream(camera: camera[1])
+                            self.startVideo(call: self.call!, localVideoStream: self.localVideoStream!)
+                        } else {
+                            print("Something wrong.\n")
+                        }
+                    }
+
+                } else {
+                    print("back")
+                    self.stopVideo() { success in
+                        if success {
+                            // set back to first camera
+                            self.localVideoStream = LocalVideoStream(camera: camera[0])
+                            self.startVideo(call: self.call!, localVideoStream: self.localVideoStream!)
+                        } else {
+                            print("Something wrong.\n")
+                        }
+                    }
+                }
+            } else {
+                print("Device has only one camera.")
             }
         }
     }
@@ -385,11 +419,12 @@ class CallingViewModel: NSObject, ObservableObject {
         }
     }
 
-    func stopVideo() {
+    func stopVideo(completion: @escaping (Bool) -> Void) {
         if let call = self.call {
             call.stopVideo(stream: self.localVideoStream) { error in
                 if let error = error {
                     print("LocalVideo failed to stop: \(error.localizedDescription)\n")
+                    completion(false)
                 } else {
                     print("LocalVideo stopped successfully.\n")
                     if let localVideoStreamModel = self.localVideoStreamModel {
@@ -398,6 +433,7 @@ class CallingViewModel: NSObject, ObservableObject {
                         localVideoStreamModel.renderer = nil
                         localVideoStreamModel.videoStreamView = nil
                     }
+                    completion(true)
                 }
             }
         }
@@ -407,7 +443,7 @@ class CallingViewModel: NSObject, ObservableObject {
         if let call = self.call,
            let localVideoStream = self.localVideoStream {
             if isLocalVideoStreamEnabled {
-                stopVideo()
+                stopVideo() { _ in }
             } else {
                 startVideo(call: call, localVideoStream: localVideoStream)
             }
@@ -570,13 +606,10 @@ extension CallingViewModel: CallDelegate {
             if let callUUID = UUID(uuidString: call.callId) {
                 ProviderDelegate.shared.connectedAt(callId: callUUID)
             }
-//            if let localVideoStream = self.localVideoStream {
-//                self.startVideo(call: call, localVideoStream: localVideoStream)
-//            }
         }
 
         if call.state == .disconnected || call.state == .none {
-            self.stopVideo()
+            self.stopVideo() { _ in }
             self.remoteVideoStreamModels.forEach({ (remoteVideoStreamModel) in
                 remoteVideoStreamModel.renderer?.dispose()
                 remoteVideoStreamModel.videoStreamView = nil

@@ -38,6 +38,14 @@ struct DirectCallView: View {
                 }
                 Spacer()
                 HStack {
+                    Button(action: { callingViewModel.toggleCamera() }, label: {
+                        HStack {
+                            Spacer()
+                            Image(systemName: "arrow.triangle.2.circlepath.camera")
+                                .padding()
+                            Spacer()
+                        }
+                    })
                     Button(action: { callingViewModel.toggleVideo() }, label: {
                         HStack {
                             Spacer()
@@ -75,7 +83,7 @@ struct DirectCallView: View {
                     })
                 }
             }
-            .font(.largeTitle)
+            .font(.title)
         }
     }
 }
